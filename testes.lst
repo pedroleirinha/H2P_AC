@@ -1,0 +1,23 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\testes.lst	Thu Feb 26 17:24:24 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0004 4
+
+Symbols
+Name                    Type      Value       Section
+desafio1                LABEL     0000 0      .text
+desafio2                LABEL     0002 2      .text
+
+Code listing
+   1           	
+   2           	desafio1: 
+   3 0000 80 B0	    mov R0, R1
+   4           	
+   5           	
+   6           	desafio2:
+   7           	    ;Escrevere o maior valor entre A e B na variável C.
+   8           	    ; A => R0; B => R1; C => R2
+   9           	    
+  10 0002 80 B0	    mov R0, R1
+  10           	
