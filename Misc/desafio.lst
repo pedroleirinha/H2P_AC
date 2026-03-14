@@ -1,0 +1,84 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\desafio.lst	Thu Mar 05 09:26:42 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0034 52
+
+Symbols
+Name                    Type      Value       Section
+compare                 LABEL     0010 16     .text
+end_if                  LABEL     0032 50     .text
+initialize              LABEL     0000 0      .text
+inverter                LABEL     000C 12     .text
+inverter2               LABEL     002E 46     .text
+line#64                 LABEL     0032 50     .text
+while                   LABEL     001E 30     .text
+while_end               LABEL     0028 40     .text
+
+Code listing
+   1           	; -----------------------------------------------------------------------------
+   2           	; Ficheiro:  lab01.s
+   3           	; Descricao: Codigo de suporte a realizacao da 1a atividade laboratorial de AC.
+   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
+   5           	; Data:      11-03-2022
+   6           	; -----------------------------------------------------------------------------
+   7           	
+   8           		; r0 guarda o valor da variavel M
+   9           		; r1 guarda o valor da variavel m
+  10           		; r2 guarda o valor da variavel p
+  11           		; r3 e utilizado para guardar valores temporariamente
+  12           	
+  13           	initialize:
+  14 0000 02 60		mov	r2, #0
+  15 0002 03 60		mov	r3, #0 
+  16           	
+  17           	
+  18           	;Inverter B
+  19 0004 85 B0		mov r5, r1
+  20 0006 94 E0		lsl r4, r1, #1 ; faz shift do bit mais à esquerda para verificar o sinal
+  21 0008 01 48		bcs inverter
+  22 000A 02 58		b compare
+  23           	
+  24           	
+  25           	
+  26           	inverter:
+  27           		;inversao
+  28 000C B4 88		sub r4, r3, r1 ; faz o (0 - m)
+  29 000E 01 B2		mov r1, r4 ; o m fica com valor absoluto
+  30           	
+  31           	compare:
+  32           	
+  33           	;compare M != 0:
+  34 0010 30 B8		cmp	r3, r0 ; 0 - M
+  35 0012 0F 40		beq end_if ; SE r3 == r0
+  36           	
+  37           	;compare_menor dos registos
+  38 0014 80 B8		cmp r0, r1
+  39 0016 03 48		bhs while ;aqui o r1 é menor que o r0
+  40           	
+  41           	;faz troca
+  42 0018 04 B0		mov r4, r0 ;mete o M no r4
+  43 001A 80 B0		mov r0, r1 ;mete no M o m
+  44 001C 01 B2		mov r1, r4 ;mete no m o r4  (que é o M)
+  45           	
+  46           	while:
+  47 001E B0 B8		cmp	r3, r1
+  48 0020 03 48		bhs	while_end ; 0 >= m
+  49 0022 22 80		add	r2, r2, r0
+  50 0024 91 A8		sub	r1, r1, #1 ; m => contador; m--
+  51 0026 FB 5B		b	while
+  52           	while_end:
+  53           	
+  54 0028 D4 E0		lsl r4, r5, #1 ; faz shift do bit mais à esquerda para verificar o sinal
+  55 002A 01 48		bcs inverter2
+  56 002C 02 58		b end_if
+  57           	
+  58           	inverter2:
+  59           		;inversao
+  60 002E 34 89		sub r4, r3, r2 ; faz o (0 - m)
+  61 0030 02 B2		mov r2, r4
+  62           	
+  63           	end_if:
+  64 0032 FF 5B		b	.
+  65           		
+  65           	
