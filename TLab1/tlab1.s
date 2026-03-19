@@ -20,13 +20,8 @@ main:
 
     mov r0, #100
     ldr r1, array_vals1_addr
-    ldr r1, [r1]
-
     ldr r2, array_k1_addr
-    ldrb r2, [r2]
-
     ldr r3, array_s1_addr
-    ldrb r3, [r3]
 
     bl build_sequence
     
@@ -35,13 +30,8 @@ main:
     ;n2
     mov r0, #10
     ldr r1, array_vals2_addr
-    ldr r1, [r1]
-
     ldr r2, array_k2_addr
-    ldrb r2, [r2]
-
     ldr r3, array_s2_addr
-    ldrb r3, [r3]
 
     bl build_sequence
 
@@ -50,13 +40,8 @@ main:
     ;n3
     mov r0, #50
     ldr r1, array_vals3_addr
-    ldr r1, [r1]
-
     ldr r2, array_k3_addr
-    ldrb r2, [r2]
-
     ldr r3, array_s3_addr
-    ldrb r3, [r3]
 
     bl build_sequence
     
@@ -100,20 +85,24 @@ build_sequence:
     ; ciclo while
 build_sequence_while:
 
-    mov r3, #0 ; 0
+    mov r3, #0 ; i = 0
     ldrb r2, [r7, r4] ;s[i]
 
     cmp r3, r2
     beq build_sequence_while_end ; s[i] != 0
     
-    ldr r0, [r5, r4]    ;v[i]
+    LSL r3, r4, #1
+    
+    ldr r0, [r5, r3]    ;v[i]
     ldrb r1, [r6, r4]   ;k[i]
     ldrb r2, [r7, r4]   ;s[i]
 
     BL scale_value
     
     ADD	r4, r4, #1 ; i++
-    STRB r0, [r5, r4]
+    LSL r3, r4, #1
+
+    STR r0, [r5, r3]
 
     B	build_sequence_while
 
@@ -129,21 +118,15 @@ build_sequence_while_end:
 ;END BUILD_SEQUENCE
 
 array_s1_addr:   .word array_s1
-
 array_k1_addr:   .word array_k1
-
 array_vals1_addr: .word array_vals1
 
 array_s2_addr:   .word array_s2
-
 array_k2_addr:   .word array_k2
-
 array_vals2_addr: .word array_vals2
 
 array_s3_addr:   .word array_s3
-
 array_k3_addr:   .word array_k3
-
 array_vals3_addr: .word array_vals3
 
 
@@ -182,7 +165,7 @@ scale_value:
     ;r0 e r1 = prod -- Não precisa de estar na stack porque não haverá mais chamadas a funções onde seja preciso perservar o valor
     
     MOV r2, #0xFF                ; k_ext = k & 0xFF; Mascara para tratar os bits
-    AND r1, r2, r0               ; menos significativos.    
+    AND r1, r2, r1               ; menos significativos.    
 
     ;; r0 = v[i]
     ;; r1 = k_ext
@@ -192,7 +175,7 @@ scale_value:
     
     mov r2, #0  ; 
     cmp r6, r2  ; if (s != 0)
-    beq jump    ; 
+    beq scale_while_end02    ; 
 
     ;operacoes com s
 
@@ -206,20 +189,17 @@ scale_before_while:
     mov r4, #1 ; 1
 scale_while:
     cmp	r4, r2 ; S >= 1
-    bhs	while_end 
+    bhs	scale_while_end 
     
     lsl r3, r3, #1
     sub	r2, r2, #1 ; m => contador; m--
-    b	while
+    b	scale_while
 
 scale_while_end:
 
     add r0, r0, r3  ; 
     mov r3, #0      ; prod += 0x00000001 << (s - 1);
     adc r0, r0, r3  ; 
-
-
-
 
     mov r2, r6 ; S = 8
 scale_before_while02:
@@ -229,29 +209,11 @@ scale_while02:
     bhs	scale_while_end02 
     
     lsr r1, r1, #1 ;MAIS SIGNIFICATIVO
-
-    BCC jump02
-    mov r3, #MASK
-    ADD r0, r0, r3 ;SOMA 1000 0000 0000 0000
-jump02:
-    lsr r0, r0, #1 ;MENOS SIGNIFICATIVO
+    RRX r0, r0 ;MENOS SIGNIFICATIVO
     sub	r2, r2, #1 ; m => contador; m--
     b	scale_while02
 
 scale_while_end02:
-
-    ;while(s > 0 ){
-    ;    lsl r2, r3, #1
-    ;    s--
-    ;}
-    ;
-    ;while(s > 0 ){
-    ;    lsr r2, r3, #1
-    ;    s--
-    ;}
-
-jump:
-    ; VERIFICAR r0 e r1 tem de ser o prod 32 bits!!
     ; prod = r0 e r1
 
     ; r0 -> prod_s ; r1 -> VAL_MIN; r2 -> r0
@@ -275,6 +237,9 @@ multiplication:
     ;r1 = k
     ;r2,r3 = acc
     
+    PUSH R4
+
+
     ;compare_menor dos registos
 	cmp r0, r1
 	bhs before_while ;aqui o r1 é menor que o r0
@@ -295,13 +260,15 @@ while:
     bhs	while_end ; 0 >= m
 
     add	r2, r2, r0
-    mov r0, #0
-    adc r3, r3, r0
+    mov r4, #0
+    adc r3, r3, r4
     
     sub	r1, r1, #1 ; m => contador; m--
     b	while
 
 while_end:
+
+    POP R4 
 
     mov r0, r2
     mov r1, r3
