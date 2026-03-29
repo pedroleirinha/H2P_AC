@@ -169,8 +169,8 @@ scale_value:
 	mov r5, r1		;para guardar k em registo seguro
 	mov r6, r2		;para guardar s em registo seguro
 
-	;mov r2, #0xff   ;guardo em r2 o valor 0 que servirá para extender o k para 16 bits
-	;and r1, r1, r2  ; guardo em r1 o valor de k_ext já com 16 bits
+	mov r2, #0xff   ;guardo em r2 o valor 0 que servirá para extender o k para 16 bits
+	and r1, r1, r2  ; guardo em r1 o valor de k_ext já com 16 bits
 
 	bl umull
 
