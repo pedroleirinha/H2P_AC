@@ -29,12 +29,9 @@ main:
 
 ;END MAIN
 
-stack_top_addr:
-    .word stack_top
-occurrences_addr:
-    .word occurrences
-texto_addr:
-    .word texto
+stack_top_addr: .word stack_top
+occurrences_addr: .word occurrences
+texto_addr: .word texto
 
 
 
@@ -157,9 +154,7 @@ histogram_end:
 ;END VOWEL_HISTOGRAM    
 
 
-
     .data
-    
 texto:          .asciz "heello"
 .align 1
 occurrences:    .space SIZE, 0

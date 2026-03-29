@@ -1,7 +1,6 @@
-    .equ STACK_SIZE, 64
+    .equ STACK_SIZE, 32
     .equ VAL_MIN, 0x0005
-    .equ MASK, 0x8000
-
+    
     .text 
 
     B program
@@ -9,7 +8,8 @@
 
 program:
     LDR sp, stack_top_addr
-    B main
+    BL main
+    B .
 
 stack_top_addr:
     .word stack_top
@@ -50,6 +50,18 @@ main:
     POP PC
 
 ;END MAIN
+
+array_s1_addr:   .word array_s1
+array_k1_addr:   .word array_k1
+array_vals1_addr: .word array_vals1
+
+array_s2_addr:   .word array_s2
+array_k2_addr:   .word array_k2
+array_vals2_addr: .word array_vals2
+
+array_s3_addr:   .word array_s3
+array_k3_addr:   .word array_k3
+array_vals3_addr: .word array_vals3
 
 
 ;
@@ -117,18 +129,6 @@ build_sequence_while_end:
     POP PC
 ;END BUILD_SEQUENCE
 
-array_s1_addr:   .word array_s1
-array_k1_addr:   .word array_k1
-array_vals1_addr: .word array_vals1
-
-array_s2_addr:   .word array_s2
-array_k2_addr:   .word array_k2
-array_vals2_addr: .word array_vals2
-
-array_s3_addr:   .word array_s3
-array_k3_addr:   .word array_k3
-array_vals3_addr: .word array_vals3
-
 
 ;
 ; >> Função SCALE_VALUE <<
@@ -182,11 +182,12 @@ scale_value:
 
 
     MOV r2, r6      ; S = 8
-    MOV r3, #1
+    MOV r3, #1      ; onde é feito o shift dos bits menos significativos
+    MOV r4, #0      ; onde é feito o shift dos bits mais significativos
 scale_before_while:
-    MOV r4, #1
+    MOV r5, #1
 scale_while:
-    CMP	r4, r2          ; S >= 1
+    CMP	r5, r2          ; S >= 1
     BHS	scale_while_end 
     
     LSL r3, r3, #1
@@ -196,8 +197,8 @@ scale_while:
 scale_while_end:
 
     ADD r0, r0, r3  ; 
-    MOV r3, #0      ; prod += 0x00000001 << (s - 1);
-    ADC r0, r0, r3  ; 
+    ADC r1, r1, r4  ; 
+    ;MOV r3, #0      ; prod += 0x00000001 << (s - 1);
 
     MOV r2, r6      ; S = 8
 scale_before_while02:
@@ -312,7 +313,6 @@ else:
 return:
     MOV PC, LR
 ;END CLAMP_VALUE
-
 
     .data
 
