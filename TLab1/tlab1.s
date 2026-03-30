@@ -172,8 +172,10 @@ scale_value:
                     ; Não precisa de estar na stack porque não haverá mais chamadas à funções 
                     ; onde seja preciso perservar o valor
     
-    MOV r2, #0xFF   ; k_ext = k & 0xFF; Mascara para tratar os bits
-    AND r1, r2, r1  ; menos significativos.    
+    ; MOV r2, #0xFF   ; k_ext = k & 0xFF; Mascara para tratar os bits
+    ; AND r1, r2, r1  ; menos significativos.    
+    
+    ; Os 8 bits mais significativos são colocados a zero pelo compilador
 
                     ; r0 = v[i]
                     ; r1 = k_ext
@@ -202,7 +204,9 @@ scale_while:
     
     LSL r3, r3, #1  ; desloca o valor de r3 1 bit para a esquerda (multiplica por 2)
     MOV r7, #0
+    
     BCS scale_carry_set
+    
     LSL r4, r4, #1  ; desloca o valor de r4 1 bit para a esquerda (multiplica por 2)
 
 scale_carry_set:

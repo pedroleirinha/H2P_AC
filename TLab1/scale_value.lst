@@ -1,4 +1,4 @@
-P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\TLab1\scake_value.lst	Mon Mar 30 01:25:17 2026
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\TLab1\scale_value.lst	Mon Mar 30 12:21:54 2026
 
 Sections
 Index   Name            Address   Size
@@ -75,7 +75,7 @@ Code listing
   23           	
   24 0012 19 5C	    BL scale_value ; RES = 80
   25           	
-  26 0014 80 6C	    MOV r0, #200
+  26 0014 F0 60	    MOV r0, #0b1111
   27 0016 71 63	    MOV r1, #55
   28 0018 52 60	    MOV r2, #5
   29           	
@@ -95,7 +95,7 @@ Code listing
   43           	    
   44 0028 F0 6F	    MOV r0, #255
   45 002A F1 6F	    MOV r1, #255
-  46 002C B2 60	    MOV r2, #11
+  46 002C 32 61	    MOV r2, #19
   47           	
   48 002E 0B 5C	    BL scale_value ; RES = 32
   49           	    
@@ -191,158 +191,157 @@ Code listing
  139 007E F7 5B	    B	scale_while
  140           	
  141           	scale_while_end:
- 142           	
- 143 0080 80 81	    ADD r0, r0, r3  ; 
- 144 0082 03 60	    MOV r3, #0      ; prod += 0x00000001 << (s - 1);
- 145 0084 11 92	    ADC r1, r1, r4  ; 
- 146           	
- 147 0086 02 B3	    MOV r2, r6      ; S = 8
- 148           	scale_before_while02:
- 149 0088 04 60	    MOV r4, #0 ; 1
- 150           	scale_while02:
- 151 008A 40 B9	    CMP	r4, r2              ; S >= 1
- 152 008C 04 48	    BHS	scale_while_end02 
- 153           	    
- 154 008E 91 E8	    LSR r1, r1, #1          ; MAIS SIGNIFICATIVO
- 155 0090 00 D8	    RRX r0, r0              ; MENOS SIGNIFICATIVO
- 156 0092 A2 A8	    SUB	r2, r2, #1          ; m => contador; m--
- 157 0094 FA 5B	    B	scale_while02
- 158           	
- 159           	scale_while_end02:
- 160           	    ; prod = r0 e r1
- 161           	
- 162           	    ; r0 -> prod_s ; r1 -> VAL_MIN; r2 -> r0
- 163 0096 51 60	    MOV r1, #VAL_MIN
- 164 0098 02 B0	    MOV r2, r0
- 165           	
- 166 009A 19 5C	    BL clamp_value_func    
- 167           	    ;retorno já esta no r0
- 168           	
- 169 009C 07 04	    POP r7
- 170 009E 06 04	    POP r6
- 171 00A0 05 04	    POP r5
- 172 00A2 04 04	    POP r4 
- 173 00A4 0F 04	    POP PC
- 174           	;END SCALE_VALUE
+ 142 0080 80 81	    ADD r0, r0, r3  ; 
+ 143 0082 03 60	    MOV r3, #0      ; prod += 0x00000001 << (s - 1);
+ 144 0084 11 92	    ADC r1, r1, r4  ; 
+ 145           	
+ 146 0086 02 B3	    MOV r2, r6      ; S = 8
+ 147           	scale_before_while02:
+ 148 0088 04 60	    MOV r4, #0 ; 1
+ 149           	scale_while02:
+ 150 008A 40 B9	    CMP	r4, r2              ; S >= 1
+ 151 008C 04 48	    BHS	scale_while_end02 
+ 152           	    
+ 153 008E 91 E8	    LSR r1, r1, #1          ; MAIS SIGNIFICATIVO
+ 154 0090 00 D8	    RRX r0, r0              ; MENOS SIGNIFICATIVO
+ 155 0092 A2 A8	    SUB	r2, r2, #1          ; m => contador; m--
+ 156 0094 FA 5B	    B	scale_while02
+ 157           	
+ 158           	scale_while_end02:
+ 159           	    ; prod = r0 e r1
+ 160           	
+ 161           	    ; r0 -> prod_s ; r1 -> VAL_MIN; r2 -> r0
+ 162 0096 51 60	    MOV r1, #VAL_MIN
+ 163 0098 02 B0	    MOV r2, r0
+ 164           	
+ 165 009A 19 5C	    BL clamp_value_func    
+ 166           	    ;retorno já esta no r0
+ 167           	
+ 168 009C 07 04	    POP r7
+ 169 009E 06 04	    POP r6
+ 170 00A0 05 04	    POP r5
+ 171 00A2 04 04	    POP r4 
+ 172 00A4 0F 04	    POP PC
+ 173           	;END SCALE_VALUE
+ 174           	
  175           	
- 176           	
- 177           	;
- 178           	; >> Função UMULL <<
- 179           	; Tipo: - FOLHA -
- 180           	; Parametros de entrada:
- 181           	;   uint16_t v --> r0
- 182           	;   uint16_t k --> r1
- 183           	;
- 184           	; variaveis locais:
- 185           	;   uint16_t p -------> r2  ; Bits menos significativos
- 186           	;   uint16_t p -------> r3  ; Bits mais significativos
- 187           	;
- 188           	; Parametros de saida:
- 189           	;   uint32_t p -------> r0, r1
- 190           	;
- 191           	umull:
- 192 00A6 04 24	    PUSH R4
- 193           	
- 194           	                        ; compare_menor dos registos
- 195 00A8 80 B8		CMP r0, r1
- 196 00AA 03 48		BHS before_while    ; aqui o r1 é menor que o r0
- 197           	
- 198           	                        ; faz troca
- 199 00AC 03 B0	    MOV r3, r0          ; mete o M no r4
- 200 00AE 80 B0	    MOV r0, r1          ; mete no M o m
- 201 00B0 81 B1	    MOV r1, r3          ; mete no m o r4  (que é o M)
- 202           	
- 203           	before_while:
- 204 00B2 04 60	    MOV r4, #0
- 205           	    
- 206 00B4 02 60	    MOV r2, #0          ; accumulado/p [0]
- 207 00B6 03 60	    MOV r3, #0          ; accumulado/p [1]
- 208           	
- 209           	while:
- 210 00B8 C0 B8	    CMP	r4, r1
- 211 00BA 05 48	    BHS	while_end       ; 0 >= m
- 212           	
- 213 00BC 22 80	    ADD	r2, r2, r0
- 214 00BE 04 60	    MOV r4, #0
- 215 00C0 33 92	    ADC r3, r3, r4
- 216           	    
- 217 00C2 91 A8	    SUB	r1, r1, #1      ; m => contador; m--
- 218 00C4 F9 5B	    B	while
- 219           	
- 220           	while_end:
- 221           	
- 222 00C6 04 04	    POP R4 
- 223           	
- 224 00C8 00 B1	    MOV r0, r2
- 225 00CA 81 B1	    MOV r1, r3
- 226 00CC 0F B7	    MOV pc, lr          ; return do p no r0 e r1
- 227           	
- 228           	;END UMULL
+ 176           	;
+ 177           	; >> Função UMULL <<
+ 178           	; Tipo: - FOLHA -
+ 179           	; Parametros de entrada:
+ 180           	;   uint16_t v --> r0
+ 181           	;   uint16_t k --> r1
+ 182           	;
+ 183           	; variaveis locais:
+ 184           	;   uint16_t p -------> r2  ; Bits menos significativos
+ 185           	;   uint16_t p -------> r3  ; Bits mais significativos
+ 186           	;
+ 187           	; Parametros de saida:
+ 188           	;   uint32_t p -------> r0, r1
+ 189           	;
+ 190           	umull:
+ 191 00A6 04 24	    PUSH R4
+ 192           	
+ 193           	                        ; compare_menor dos registos
+ 194 00A8 80 B8		CMP r0, r1
+ 195 00AA 03 48		BHS before_while    ; aqui o r1 é menor que o r0
+ 196           	
+ 197           	                        ; faz troca
+ 198 00AC 03 B0	    MOV r3, r0          ; mete o M no r4
+ 199 00AE 80 B0	    MOV r0, r1          ; mete no M o m
+ 200 00B0 81 B1	    MOV r1, r3          ; mete no m o r4  (que é o M)
+ 201           	
+ 202           	before_while:
+ 203 00B2 04 60	    MOV r4, #0
+ 204           	    
+ 205 00B4 02 60	    MOV r2, #0          ; accumulado/p [0]
+ 206 00B6 03 60	    MOV r3, #0          ; accumulado/p [1]
+ 207           	
+ 208           	while:
+ 209 00B8 C0 B8	    CMP	r4, r1
+ 210 00BA 05 48	    BHS	while_end       ; 0 >= m
+ 211           	
+ 212 00BC 22 80	    ADD	r2, r2, r0
+ 213 00BE 04 60	    MOV r4, #0
+ 214 00C0 33 92	    ADC r3, r3, r4
+ 215           	    
+ 216 00C2 91 A8	    SUB	r1, r1, #1      ; m => contador; m--
+ 217 00C4 F9 5B	    B	while
+ 218           	
+ 219           	while_end:
+ 220           	
+ 221 00C6 04 04	    POP R4 
+ 222           	
+ 223 00C8 00 B1	    MOV r0, r2
+ 224 00CA 81 B1	    MOV r1, r3
+ 225 00CC 0F B7	    MOV pc, lr          ; return do p no r0 e r1
+ 226           	
+ 227           	;END UMULL
+ 228           	
  229           	
  230           	
- 231           	
- 232           	;
- 233           	; >> Função CLAMP_VALUE <<
- 234           	; Tipo: - FOLHA -
- 235           	; Parametros de entrada:
- 236           	;   uint16_t val --> r0
- 237           	;   uint16_t min --> r1
- 238           	;   uint16_t max --> r2
- 239           	;
- 240           	; variaveis locais:
- 241           	;   --Sem variáveis locais --
- 242           	;
- 243           	; Parametros de saida:
- 244           	;   uint32_t val -------> r0
- 245           	;
- 246           	clamp_value_func:
- 247           	
- 248 00CE 10 B8	    CMP r1, r0  ; if( val < min )
- 249 00D0 02 54	    BLT else
- 250 00D2 80 B0	    MOV r0, r1
- 251 00D4 03 58	    B return
- 252           	else:
- 253 00D6 00 B9	    CMP r0, r2  ; if( val > max )
- 254 00D8 01 54	    BLT return
- 255 00DA 00 B1	    MOV r0, r2
- 256           	
- 257           	return:
- 258 00DC 0F B7	    MOV PC, LR
- 259           	;END CLAMP_VALUE
+ 231           	;
+ 232           	; >> Função CLAMP_VALUE <<
+ 233           	; Tipo: - FOLHA -
+ 234           	; Parametros de entrada:
+ 235           	;   uint16_t val --> r0
+ 236           	;   uint16_t min --> r1
+ 237           	;   uint16_t max --> r2
+ 238           	;
+ 239           	; variaveis locais:
+ 240           	;   --Sem variáveis locais --
+ 241           	;
+ 242           	; Parametros de saida:
+ 243           	;   uint32_t val -------> r0
+ 244           	;
+ 245           	clamp_value_func:
+ 246           	
+ 247 00CE 10 B8	    CMP r1, r0  ; if( val < min )
+ 248 00D0 02 54	    BLT else
+ 249 00D2 80 B0	    MOV r0, r1
+ 250 00D4 03 58	    B return
+ 251           	else:
+ 252 00D6 00 B9	    CMP r0, r2  ; if( val > max )
+ 253 00D8 01 54	    BLT return
+ 254 00DA 00 B1	    MOV r0, r2
+ 255           	
+ 256           	return:
+ 257 00DC 0F B7	    MOV PC, LR
+ 258           	;END CLAMP_VALUE
+ 259           	
  260           	
- 261           	
- 262           	    .data
- 263           	
- 264          	array_k1: .byte 10, 5, 2, 0
- 264 00DE 0A 05 02 00
- 265          	array_k2: .byte 35, 38, 42, 45, 0
- 265 00E2 23 26 2A 2D 00
- 266          	array_k3: .byte 205, 154, 0, 45, 35, 0
- 266 00E7 CD 9A 00 2D 23 00
- 267           	
- 268          	array_s1: .byte 8, 20, 8, 0
- 268 00ED 08 14 08 00
- 269          	array_s2: .byte 5, 5, 5, 5, 0
- 269 00F1 05 05 05 05 00
- 270          	array_s3: .byte 8, 8, 0, 5, 5, 0
- 270 00F6 08 08 00 05 05 00
- 271           	
- 272          	    .align 1
- 273           	
- 274 00FC 00   	array_vals1: .space 12 ;[6] words
+ 261           	    .data
+ 262           	
+ 263          	array_k1: .byte 10, 5, 2, 0
+ 263 00DE 0A 05 02 00
+ 264          	array_k2: .byte 35, 38, 42, 45, 0
+ 264 00E2 23 26 2A 2D 00
+ 265          	array_k3: .byte 205, 154, 0, 45, 35, 0
+ 265 00E7 CD 9A 00 2D 23 00
+ 266           	
+ 267          	array_s1: .byte 8, 20, 8, 0
+ 267 00ED 08 14 08 00
+ 268          	array_s2: .byte 5, 5, 5, 5, 0
+ 268 00F1 05 05 05 05 00
+ 269          	array_s3: .byte 8, 8, 0, 5, 5, 0
+ 269 00F6 08 08 00 05 05 00
+ 270           	
+ 271          	    .align 1
+ 272           	
+ 273 00FC 00   	array_vals1: .space 12 ;[6] words
+ 273 .... ..
+ 273 0107 00
+ 274 0108 00   	array_vals2: .space 12 ;[6] words
  274 .... ..
- 274 0107 00
- 275 0108 00   	array_vals2: .space 12 ;[6] words
+ 274 0113 00
+ 275 0114 00   	array_vals3: .space 14 ;[6] words
  275 .... ..
- 275 0113 00
- 276 0114 00   	array_vals3: .space 14 ;[6] words
- 276 .... ..
- 276 0121 00
+ 275 0121 00
+ 276           	
  277           	
- 278           	
- 279           	    .stack
- 280 0122 00   	    .space STACK_SIZE
- 280 .... ..
- 280 0161 00
- 281           	stack_top:
- 281           	 
+ 278           	    .stack
+ 279 0122 00   	    .space STACK_SIZE
+ 279 .... ..
+ 279 0161 00
+ 280           	stack_top:
+ 280           	 

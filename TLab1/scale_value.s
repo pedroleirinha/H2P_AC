@@ -23,7 +23,7 @@ main:
 
     BL scale_value ; RES = 80
 
-    MOV r0, #200
+    MOV r0, #0b1111
     MOV r1, #55
     MOV r2, #5
 
@@ -43,7 +43,7 @@ main:
     
     MOV r0, #255
     MOV r1, #255
-    MOV r2, #11
+    MOV r2, #19
 
     BL scale_value ; RES = 32
     
@@ -139,7 +139,6 @@ scale_carry_set:
     B	scale_while
 
 scale_while_end:
-
     ADD r0, r0, r3  ; 
     MOV r3, #0      ; prod += 0x00000001 << (s - 1);
     ADC r1, r1, r4  ; 

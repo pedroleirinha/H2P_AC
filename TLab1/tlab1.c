@@ -46,7 +46,7 @@ uint16_t scale_value(uint16_t v, uint8_t k, uint8_t s)
         prod >>= s;
     }
     prod_s = prod & 0xFFFF;
-    prod_c = clamp_value(prod_s, VAL_MIN, prod_s); // PC = 10
+    prod_c = clamp_value(prod_s, VAL_MIN, prod_s);
 
     return prod_c;
 }
