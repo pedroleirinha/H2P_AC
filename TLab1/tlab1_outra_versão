@@ -1,0 +1,432 @@
+.equ STACK_SIZE, 64
+.equ VAL_MIN, 0x0005   ; #define VAL_MIN 0x0005
+
+
+
+.text  ;  Código
+	b   program
+	b   .       ; Reservado (ISR)
+
+
+program:
+
+	ldr sp, stack_top_addr
+    bl   main
+	b	.
+
+
+stack_top_addr:
+    .word stack_top
+
+
+
+
+
+main:
+
+
+	push lr
+
+
+;n1 = build_sequence( 100, array_vals1, array_k1, array_s1);
+
+    mov r0, #100
+    ldr r1, array_vals1_addr
+    ldr r2, array_k1_addr
+    ldr r3, array_s1_addr
+
+    bl build_sequence
+    
+    mov r4, r0
+
+
+
+
+ 
+ ;n2 = build_sequence( 10, array_vals2, array_k2, array_s2);
+
+    mov r0, #10
+    ldr r1, array_vals2_addr
+    ldr r2, array_k2_addr
+    ldr r3, array_s2_addr
+
+    bl build_sequence
+
+    mov r5, r0
+
+
+
+
+
+
+ ;n3 = build_sequence( 50, array_vals3, array_k3, array_s3);
+
+    mov r0, #50
+    ldr r1, array_vals3_addr
+    ldr r2, array_k3_addr
+    ldr r3, array_s3_addr
+
+    bl build_sequence
+
+	mov r6, r0
+
+	pop pc
+
+
+;//////////////////////////////////////////////////////////////////////
+
+
+
+
+array_s1_addr:   .word array_s1
+array_k1_addr:   .word array_k1
+array_vals1_addr: .word array_vals1
+
+array_s2_addr:   .word array_s2
+array_k2_addr:   .word array_k2
+array_vals2_addr: .word array_vals2
+
+array_s3_addr:   .word array_s3
+array_k3_addr:   .word array_k3
+array_vals3_addr: .word array_vals3
+
+
+
+
+
+;////////////////////////////////////////////////////////////
+
+
+
+;>>Função clamp_value<<
+;  Tipo: - FOLHA -
+; Parametros de entrada:
+;   uint16_t val-------> r0
+;   uint16_t min-------> r1
+;   uint16_t max-------> r2
+;
+; variáveis locais:
+;   - Não tem -
+;
+; Parametros de saída:
+;   uint16_t--------->   r0
+;
+
+
+
+
+clamp_value:            ;criámos uma label com o nome da função;
+    cmp r0, r1          ;comparámos o val com o min;
+    bhs clamp_else      ; usámos o higher or same para saltar apenas quando  (val < min) for falso ou seja val >= min for verdadeiro;
+    mov r0, r1          ; movemos o valor guardado em min para o val;
+    b   clamp_end       ;fizemos um branch para saltar para o final da funçao;
+
+clamp_else:             ;criámos uma label para o else da função;
+    cmp r2, r0          ;comparámos  max com o val;
+    bhs clamp_end       ; se a condição (max >= val) for verdadeira ou (val > max ) falsa ele salta para o fim da função;
+    mov r0, r2          ;movemos o valor guardado em max para o val;
+clamp_end:              ;criámos uma label para o fim da função;
+    mov pc, lr
+
+
+
+
+;///////////////////////////////////////////////////////////
+
+
+
+
+;>>Função scale_value<<
+;  Tipo: - NÃO FOLHA -
+; Parametros de entrada:
+;   uint16_t v-------> r0
+;   uint08_t K-------> r1
+;   uint08_t S-------> r2
+;
+; variáveis locais:
+;   uint32_t prod----> r4:r5
+;   uint16_t k_ext---> r6
+;   uint16_t prod_s--> r7
+;   uint16_t prod_c--> r8
+;
+; Parametros de saída:
+; uint16_t--------->   r0:r1
+;
+
+
+
+
+scale_value:
+
+	push lr
+	push r4
+	push r5
+	push r6
+	push r7
+	
+
+	mov r4, r0		;para guardar v em registo seguro
+	mov r5, r1		;para guardar k em registo seguro
+	mov r6, r2		;para guardar s em registo seguro
+
+	mov r2, #0xff   ;guardo em r2 o valor 0 que servirá para extender o k para 16 bits
+	and r1, r1, r2  ; guardo em r1 o valor de k_ext já com 16 bits
+
+	bl umull
+
+	mov r2, #0		; guardo em r2 o valor temporário 0
+
+	cmp r6, r2		; comparo s com 0
+	beq scale_value_end
+
+
+	mov r2, r6		; guardo em r2 o s extendido e r2 = s (shift count)
+	mov r3, #1		; guardo em r3 o valor 1
+	; r4   se exceder r3 no carry usamos r4 para guardar o resto
+	mov r5, #1
+	mov r7, #0
+shift_loop_left:
+
+	cmp r5, r2		; compara 1 com s
+	bhs shift_left_end  ; se 1 for maior ou igual salta para fora do loop
+	lsl r3, r3, #1  ; desloca o valor de r3 1 bit para a esquerda (multiplica por 2)
+	adc r4, r4, r7	  
+	sub r2, r2, #1  ; decrementa o r2 que é o contador
+
+	b	shift_loop_left
+
+shift_left_end:
+
+	add r0, r0, r3  ; faz a soma da parte baixa do prod com 
+	adc r1, r1, r7
+
+
+
+	mov r2, r6       ; r2 = s (número de bits a deslocar)
+    mov r4, #0       ; 
+
+shift_loop_rigth:
+
+	cmp r4, r2
+    bhs scale_value_end  ; se r4 >= s, termina loop
+
+    
+    lsr r1, r1, #1       ; 
+    rrx r0, r0           ; 
+
+    sub r2, r2, #1       ; incrementa contador
+    b shift_loop_rigth
+
+
+scale_value_end:
+
+    mov  r1, #VAL_MIN
+    mov r2, r0
+
+    bl clamp_value    
+    ;retorno já esta no r0
+
+    pop r7
+    pop r6
+    pop r5
+    pop r4 
+    pop PC
+
+
+
+
+;////////////////////////////////////////////////////////////
+
+
+
+
+;>>Função umull <<
+;  Tipo: - NÃO FOLHA -
+; Parametros de entrada:
+;   uint16_t v-----------> r0
+;   uint16_t k_ext-------> r1
+;
+; variáveis locais:
+;   uint16_t p_baixa-------------> r2
+;   uint16_t p_alta-------------> r3
+;   variavel temporaria---------> r4
+;
+;  
+;
+; Parametros de saída:
+; uint32_t---------------> r0:r1
+;
+;prod = umull( v, k_ext )
+;
+;uint16_t p = 0;
+;if ( M != 0 ) {
+;while ( m > 0 ) {
+;p = p + M;
+;m--;
+;}
+;}
+
+
+
+umull:
+
+	push r4
+	mov r4, #0		; variável temporária com valor 0
+
+	cmp r0, r4		; compara v com 0
+	beq	umull_end	; se k for igual a 0 salta para o fim da função
+
+
+	cmp r0, r1		; comparo v com k_ext
+	bhs pre_while	; se v for maior que k_ext salta para o while
+
+
+	mov r2, r0		;guarda em r2 o v
+	mov r0, r1		;guarda em r0 o k_ext porque é maior que v
+	mov r1, r2		;guarda em r1 o v
+
+
+pre_while:
+
+	mov r2, #0		; parte baixa de p a 0
+	mov r3, #0		; parte alta de p a 0
+
+umull_while:
+
+	
+	cmp r4, r1		; compara 0 com v ou k_ext dependendo de qual for menor
+	bhs umull_end	;se 0 for maior ou igual a k_ext ou v salta 
+
+	add r2, r2, r0  ; soma na parte baixa de p com v ou k_ext
+
+	adc r3, r3, r4  ; soma na parte alta de p com 0 e dependendo se ouve overflow na parte baixa faz soma com carry
+
+	sub r1, r1, #1  ; dimui o contador( k_ext ou v) em 1 
+	b	umull_while
+	
+
+umull_end:
+
+	pop r4
+
+	mov r0, r2	    ; guarda em r0 a parte baixa de p
+	mov r1, r3		; guarda em r1 a parte alta de p
+	mov pc, lr
+ 
+ 
+;////////////////////////////////////////////////////////
+
+
+
+
+
+;
+; >> Função BUILD_SEQUENCE <<
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;   uint16_t v_init ---> r0
+;   uint16_t v[] --------> r1
+;   uint8_t k[] ---------> r2
+;   uint8_t s[] ---------> r3
+;
+; variaveis locais:
+;   uint16_t i -------> r4
+;
+; Parametros de saida:
+;   uint16_t ---------> r0
+;
+
+build_sequence:
+
+	push lr
+	push r4
+	push r5
+	push r6
+	push r7
+
+
+	mov r4, #0		;mover para i o valor 0
+
+	str r0, [r1]	;guardar em memoria o valor da posicao incial de v[] em r0 
+
+
+	; movemos para os seguintes registos r1,r2,r3 pars durante a funcao while ter livre os registos de r1 a r3
+
+	mov r5, r1 		; mover para r5 o valor de v[] 
+	mov r6, r2		; mover para r6 o valor de k[]
+	mov r7, r3		; mover para r7 o valor de s[]
+
+
+build_sequence_while:
+
+	mov r1, #0			 ;variavel local com o valor 0
+	ldrb r2, [r7, r4]    ;carrega em r2 o valor de s[i]
+
+	cmp r1, r2
+	beq build_sequence_end	;se s[i] for igual a 0 quero que salte para fora
+
+	ldrb r1, [r6, r4]		; carrega o valor de k[i] em r1
+	ldrb r2, [r7, r4]		; carrega o valor de s[i] em r2
+
+	bl	scale_value			
+
+	add r4, r4, #1			; incrementa 1 em i 
+	lsl r1, r4, #1			; como cada elemento ocupa 2 bytes  tivemos de fazer um ajuste para poder saltar cada elemento
+
+	str r0, [r5, r1]		; v[i + 1]
+
+	
+
+	b	build_sequence_while
+
+
+build_sequence_end:
+
+	add r0, r4, #1		;retorna i + 1
+
+	pop r7
+	pop r6
+	pop r5
+	pop r4
+	pop pc
+
+
+
+
+
+
+;//////////////////////////////////////////////
+
+
+
+
+
+.data ; Variáveis(Arrays)
+;por questões de organização agrupei por letra do array;
+
+;arrays que acabam em k;
+
+array_k1:       .byte   205, 154, 102, 51, 0    ;uint8_t array_k1[] = { 205, 154, 102, 51, 0 };
+array_k2:       .byte   35, 38, 42, 45, 0       ;uint8_t array_k2[] = { 35, 38, 42, 45, 0 };
+array_k3:       .byte   205, 154, 0, 45, 35, 0   ;uint8_t array_k3[] = { 205, 154, 0, 45, 35, 0 };
+
+
+;arrays que acabam em s;
+
+array_s1:       .byte   8, 8, 8, 8, 0           ;uint8_t array_s1[] = { 8, 8, 8, 8, 0 };
+array_s2:       .byte   5, 5, 5, 5              ;uint8_t array_s2[] = { 5, 5, 5, 5, 0 };
+array_s3:       .byte   8, 8, 0, 5, 5, 0         ;uint8_t array_s3[] = { 8, 8, 0, 5, 5, 0 };
+
+;arrays que acabam em val;
+;para os arrays em seguida usámos o .space em vez de .word pelo facto de o valor inicial não nos interessar;
+	.align 1
+array_vals1:    .space  12                       ;6 elementos x 2 bytes = 12 bytes;       
+array_vals2:    .space  12                       ;6 elementos x 2 bytes = 12 bytes;
+array_vals3:    .space  14                       ;7 elementos x 2 bytes = 14 bytes;
+
+
+
+
+.stack ; Pilha
+.space STACK_SIZE
+stack_top:
