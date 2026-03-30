@@ -49,6 +49,17 @@ main:
 
 ;END MAIN
 
+array_s1_addr:   .word array_s1
+array_k1_addr:   .word array_k1
+array_vals1_addr: .word array_vals1
+
+array_s2_addr:   .word array_s2
+array_k2_addr:   .word array_k2
+array_vals2_addr: .word array_vals2
+
+array_s3_addr:   .word array_s3
+array_k3_addr:   .word array_k3
+array_vals3_addr: .word array_vals3
 
 ;
 ; >> Função BUILD_SEQUENCE <<
@@ -110,18 +121,6 @@ build_sequence_while_end:
     POP r4 
     POP PC
 ;END BUILD_SEQUENCE
-
-array_s1_addr:   .word array_s1
-array_k1_addr:   .word array_k1
-array_vals1_addr: .word array_vals1
-
-array_s2_addr:   .word array_s2
-array_k2_addr:   .word array_k2
-array_vals2_addr: .word array_vals2
-
-array_s3_addr:   .word array_s3
-array_k3_addr:   .word array_k3
-array_vals3_addr: .word array_vals3
 
 
 ;
