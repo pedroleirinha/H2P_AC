@@ -1,6 +1,5 @@
     .equ STACK_SIZE, 64
     .equ VAL_MIN, 0x0005
-    .equ MASK, 0x8000
 
     .text 
 
@@ -19,41 +18,34 @@ main:
     PUSH LR
 
     MOV r0, #100
-    LDR r1, array_vals1_addr
-    LDR r2, array_k1_addr
-    LDR r3, array_s1_addr
+    MOV r1, #205
+    MOV r2, #8
 
-    BL build_sequence
+    BL scale_value ; RES = 80
+
+    MOV r0, #200
+    MOV r1, #55
+    MOV r2, #5
+
+    BL scale_value ; RES = 344
     
-    MOV r4, r0
-
-    ;n2
-    MOV r0, #10
-    LDR r1, array_vals2_addr
-    LDR r2, array_k2_addr
-    LDR r3, array_s2_addr
-
-    BL build_sequence
-
     MOV r5, r0
 
-    ;n3
-    MOV r0, #50
-    LDR r1, array_vals3_addr
-    LDR r2, array_k3_addr
-    LDR r3, array_s3_addr
+    
+    MOV r0, #100
+    MOV r1, #22
+    MOV r2, #2
 
-    BL build_sequence
+    BL scale_value ; RES = 550
     
     MOV r6, r0
+    
+    
+    MOV r0, #255
+    MOV r1, #255
+    MOV r2, #11
 
-    ;n3
-    MOV r0, #0
-    LDR r1, array_vals4_addr
-    LDR r2, array_k4_addr
-    LDR r3, array_s4_addr
-
-    BL build_sequence
+    BL scale_value ; RES = 32
     
     MOV r7, r0
 
@@ -61,67 +53,6 @@ main:
 
 ;END MAIN
 
-
-;
-; >> Função BUILD_SEQUENCE <<
-; Tipo: - NAO FOLHA -
-; Parametros de entrada:
-;   uint16_t v_init --> r0
-;   uint16_t v [] ----> r1
-;   uint8_t k [] -----> r2
-;   uint8_t s [] -----> r3
-;
-; variaveis locais:
-;   uint16_t i -------> r4
-;
-; Parametros de saida:
-;   uint16_t ---------> r0
-;
-build_sequence:
-    PUSH LR ; prologo
-    PUSH r4 ; prologo
-    PUSH r5 ; prologo
-    PUSH r6 ; prologo
-    PUSH r7 ; prologo
-
-    MOV r4, #0         ; uint16_t i = 0;
-
-    STR r0, [r1]       ; v[0] = v_init;
-
-    MOV r5, r1 ; V
-    MOV r6, r2 ; K
-    MOV r7, r3 ; S
-
-    ; ciclo while
-build_sequence_while:
-
-    MOV  r3, #0         ; i = 0
-    LDRB r2, [r7, r4]   ; s[i]
-
-    CMP  r3, r2
-    BEQ  build_sequence_while_end ; s[i] != 0
-
-    LDRB r1, [r6, r4]   ; k[i]
-    LDRB r2, [r7, r4]   ; s[i]
-    BL   scale_value
-
-    ADD	 r4, r4, #1     ; i++
-    LSL  r3, r4, #1     ; Faz ajuste para saltar 1 word completa em vez de 1 byte
-
-    STR  r0, [r5, r3]
-
-    B	 build_sequence_while
-
-build_sequence_while_end:
-    
-    ADD	r0, r4, #1      ; i++
-
-    POP r7
-    POP r6
-    POP r5
-    POP r4 
-    POP PC
-;END BUILD_SEQUENCE
 
 array_s1_addr:   .word array_s1
 array_k1_addr:   .word array_k1
@@ -134,10 +65,6 @@ array_vals2_addr: .word array_vals2
 array_s3_addr:   .word array_s3
 array_k3_addr:   .word array_k3
 array_vals3_addr: .word array_vals3
-
-array_s4_addr:   .word array_s4
-array_k4_addr:   .word array_k4
-array_vals4_addr: .word array_vals4
 
 
 ;
@@ -334,22 +261,19 @@ return:
 
     .data
 
-array_k1: .byte 205, 154, 102, 51, 0
+array_k1: .byte 10, 5, 2, 0
 array_k2: .byte 35, 38, 42, 45, 0
 array_k3: .byte 205, 154, 0, 45, 35, 0
-array_k4: .byte 200, 100, 255, 0
 
-array_s1: .byte 8, 8, 8, 8, 0
+array_s1: .byte 8, 20, 8, 0
 array_s2: .byte 5, 5, 5, 5, 0
 array_s3: .byte 8, 8, 0, 5, 5, 0
-array_s4: .byte 5, 2, 11, 0
 
     .align 1
 
-array_vals1: .space 10 ;[5] words
-array_vals2: .space 10 ;[5] words
-array_vals3: .space 12 ;[6] words
-array_vals4: .space 8 ;[4] words
+array_vals1: .space 12 ;[6] words
+array_vals2: .space 12 ;[6] words
+array_vals3: .space 14 ;[6] words
 
 
     .stack

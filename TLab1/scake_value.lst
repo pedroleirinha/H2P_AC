@@ -1,0 +1,348 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\TLab1\scake_value.lst	Mon Mar 30 01:25:17 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      00DE 222
+1       .data           00DE      0044 68
+2       .stack          0122      0040 64
+
+Symbols
+Name                    Type      Value       Section
+array_k1                LABEL     00DE 222    .data
+array_k1_addr           LABEL     0036 54     .text
+array_k2                LABEL     00E2 226    .data
+array_k2_addr           LABEL     003C 60     .text
+array_k3                LABEL     00E7 231    .data
+array_k3_addr           LABEL     0042 66     .text
+array_s1                LABEL     00ED 237    .data
+array_s1_addr           LABEL     0034 52     .text
+array_s2                LABEL     00F1 241    .data
+array_s2_addr           LABEL     003A 58     .text
+array_s3                LABEL     00F6 246    .data
+array_s3_addr           LABEL     0040 64     .text
+array_vals1             LABEL     00FC 252    .data
+array_vals1_addr        LABEL     0038 56     .text
+array_vals2             LABEL     0108 264    .data
+array_vals2_addr        LABEL     003E 62     .text
+array_vals3             LABEL     0114 276    .data
+array_vals3_addr        LABEL     0044 68     .text
+before_while            LABEL     00B2 178    .text
+clamp_value_func        LABEL     00CE 206    .text
+else                    LABEL     00D6 214    .text
+line#7                  LABEL     0002 2      .text
+main                    LABEL     000A 10     .text
+program                 LABEL     0004 4      .text
+return                  LABEL     00DC 220    .text
+scale_before_while      LABEL     006C 108    .text
+scale_before_while02    LABEL     0088 136    .text
+scale_carry_set         LABEL     007A 122    .text
+scale_value             LABEL     0046 70     .text
+scale_while             LABEL     006E 110    .text
+scale_while02           LABEL     008A 138    .text
+scale_while_end         LABEL     0080 128    .text
+scale_while_end02       LABEL     0096 150    .text
+STACK_SIZE              ABSOLUTE  0040 64     .text
+stack_top               LABEL     0162 354    .stack
+stack_top_addr          LABEL     0008 8      .text
+umull                   LABEL     00A6 166    .text
+VAL_MIN                 ABSOLUTE  0005 5      .text
+while                   LABEL     00B8 184    .text
+while_end               LABEL     00C6 198    .text
+
+Code listing
+   1          	    .equ STACK_SIZE, 64
+   2          	    .equ VAL_MIN, 0x0005
+   3           	
+   4           	    .text 
+   5           	
+   6 0000 01 58	    B program
+   7 0002 FF 5B	    B . ; Reservado (ISR)
+   8           	
+   9           	program:
+  10 0004 1D 0C	    LDR sp, stack_top_addr
+  11 0006 01 58	    B main
+  12           	
+  13           	stack_top_addr:
+  14 0008 62 01	    .word stack_top
+  15           	
+  16           	;START MAIN
+  17           	main:
+  18 000A 0E 24	    PUSH LR
+  19           	
+  20 000C 40 66	    MOV r0, #100
+  21 000E D1 6C	    MOV r1, #205
+  22 0010 82 60	    MOV r2, #8
+  23           	
+  24 0012 19 5C	    BL scale_value ; RES = 80
+  25           	
+  26 0014 80 6C	    MOV r0, #200
+  27 0016 71 63	    MOV r1, #55
+  28 0018 52 60	    MOV r2, #5
+  29           	
+  30 001A 15 5C	    BL scale_value ; RES = 344
+  31           	    
+  32 001C 05 B0	    MOV r5, r0
+  33           	
+  34           	    
+  35 001E 40 66	    MOV r0, #100
+  36 0020 61 61	    MOV r1, #22
+  37 0022 22 60	    MOV r2, #2
+  38           	
+  39 0024 10 5C	    BL scale_value ; RES = 550
+  40           	    
+  41 0026 06 B0	    MOV r6, r0
+  42           	    
+  43           	    
+  44 0028 F0 6F	    MOV r0, #255
+  45 002A F1 6F	    MOV r1, #255
+  46 002C B2 60	    MOV r2, #11
+  47           	
+  48 002E 0B 5C	    BL scale_value ; RES = 32
+  49           	    
+  50 0030 07 B0	    MOV r7, r0
+  51           	
+  52 0032 0F 04	    POP PC
+  53           	
+  54           	;END MAIN
+  55           	
+  56           	
+  57 0034 ED 00	array_s1_addr:   .word array_s1
+  58 0036 DE 00	array_k1_addr:   .word array_k1
+  59 0038 FC 00	array_vals1_addr: .word array_vals1
+  60           	
+  61 003A F1 00	array_s2_addr:   .word array_s2
+  62 003C E2 00	array_k2_addr:   .word array_k2
+  63 003E 08 01	array_vals2_addr: .word array_vals2
+  64           	
+  65 0040 F6 00	array_s3_addr:   .word array_s3
+  66 0042 E7 00	array_k3_addr:   .word array_k3
+  67 0044 14 01	array_vals3_addr: .word array_vals3
+  68           	
+  69           	
+  70           	;
+  71           	; >> Função SCALE_VALUE <<
+  72           	; Tipo: - NAO FOLHA -
+  73           	; Parametros de entrada:
+  74           	;   uint16_t v -------> r0
+  75           	;   uint8_t k --------> r1
+  76           	;   uint8_t s --------> r2
+  77           	;
+  78           	; variaveis locais:
+  79           	;   uint32_t prod ----> r4,r5
+  80           	;   uint16_t k_ext ---> r6
+  81           	;   uint16_t prod_s --> r7
+  82           	;   uint16_t prod_c --> r8
+  83           	;
+  84           	; Parametros de saida:
+  85           	;   uint16_t ---------> r0
+  86           	;
+  87           	scale_value: 
+  88 0046 0E 24	    PUSH LR         ; prologo
+  89 0048 04 24	    PUSH r4         ; prologo
+  90 004A 05 24	    PUSH r5         ; prologo
+  91 004C 06 24	    PUSH r6         ; prologo
+  92 004E 07 24	    PUSH r7         ; prologo
+  93           	
+  94 0050 04 B0	    MOV r4, r0      ; V
+  95 0052 85 B0	    MOV r5, r1      ; K
+  96 0054 06 B1	    MOV r6, r2      ; S
+  97           	
+  98           	                    ; r0 e r1 = prod -- 
+  99           	                    ; Não precisa de estar na stack porque não haverá mais chamadas à funções 
+ 100           	                    ; onde seja preciso perservar o valor
+ 101           	    
+ 102 0056 F2 6F	    MOV r2, #0xFF   ; k_ext = k & 0xFF; Mascara para tratar os bits
+ 103 0058 A1 C0	    AND r1, r2, r1  ; menos significativos.    
+ 104           	
+ 105           	                    ; r0 = v[i]
+ 106           	                    ; r1 = k_ext
+ 107           	
+ 108 005A 25 5C	    BL umull
+ 109           	                    ; r0, r1 -> return
+ 110           	    
+ 111 005C 02 60	    MOV r2, #0      ;
+ 112 005E 60 B9	    CMP r6, r2      ; if (s != 0)
+ 113 0060 1A 40	    BEQ scale_while_end02    
+ 114           	
+ 115           	    ; operacoes com s
+ 116           	
+ 117 0062 F2 6F	    MOV r2, #0xFF   ; k_ext = k & 0xFF; Mascara para tratar os bits
+ 118 0064 66 C1	    AND r6, r6, r2  ; menos significativos.    
+ 119           	
+ 120           	
+ 121 0066 02 B3	    MOV r2, r6      ; S = 8
+ 122 0068 13 60	    MOV r3, #1      ; valor inicial para o shift dos bits menos significativos
+ 123 006A 04 60	    MOV r4, #0      ; valor inicial para o shift dos bits mais significativos
+ 124           	scale_before_while:
+ 125 006C 15 60	    MOV r5, #1
+ 126           	scale_while:
+ 127 006E 50 B9	    CMP	r5, r2          ; S >= 1
+ 128 0070 07 48	    BHS	scale_while_end 
+ 129           	    
+ 130 0072 B3 E0	    LSL r3, r3, #1  ; desloca o valor de r3 1 bit para a esquerda (multiplica por 2)
+ 131 0074 07 60	    MOV r7, #0
+ 132 0076 01 48	    BCS scale_carry_set
+ 133 0078 C4 E0	    LSL r4, r4, #1  ; desloca o valor de r4 1 bit para a esquerda (multiplica por 2)
+ 134           	
+ 135           	scale_carry_set:
+ 136 007A C4 93		ADC r4, r4, r7	; Caso o carry = 1 [Do LSL] é adicionado 1 bit ao 2º registo 
+ 137           	
+ 138 007C A2 A8	    SUB	r2, r2, #1      ; m => contador; m--
+ 139 007E F7 5B	    B	scale_while
+ 140           	
+ 141           	scale_while_end:
+ 142           	
+ 143 0080 80 81	    ADD r0, r0, r3  ; 
+ 144 0082 03 60	    MOV r3, #0      ; prod += 0x00000001 << (s - 1);
+ 145 0084 11 92	    ADC r1, r1, r4  ; 
+ 146           	
+ 147 0086 02 B3	    MOV r2, r6      ; S = 8
+ 148           	scale_before_while02:
+ 149 0088 04 60	    MOV r4, #0 ; 1
+ 150           	scale_while02:
+ 151 008A 40 B9	    CMP	r4, r2              ; S >= 1
+ 152 008C 04 48	    BHS	scale_while_end02 
+ 153           	    
+ 154 008E 91 E8	    LSR r1, r1, #1          ; MAIS SIGNIFICATIVO
+ 155 0090 00 D8	    RRX r0, r0              ; MENOS SIGNIFICATIVO
+ 156 0092 A2 A8	    SUB	r2, r2, #1          ; m => contador; m--
+ 157 0094 FA 5B	    B	scale_while02
+ 158           	
+ 159           	scale_while_end02:
+ 160           	    ; prod = r0 e r1
+ 161           	
+ 162           	    ; r0 -> prod_s ; r1 -> VAL_MIN; r2 -> r0
+ 163 0096 51 60	    MOV r1, #VAL_MIN
+ 164 0098 02 B0	    MOV r2, r0
+ 165           	
+ 166 009A 19 5C	    BL clamp_value_func    
+ 167           	    ;retorno já esta no r0
+ 168           	
+ 169 009C 07 04	    POP r7
+ 170 009E 06 04	    POP r6
+ 171 00A0 05 04	    POP r5
+ 172 00A2 04 04	    POP r4 
+ 173 00A4 0F 04	    POP PC
+ 174           	;END SCALE_VALUE
+ 175           	
+ 176           	
+ 177           	;
+ 178           	; >> Função UMULL <<
+ 179           	; Tipo: - FOLHA -
+ 180           	; Parametros de entrada:
+ 181           	;   uint16_t v --> r0
+ 182           	;   uint16_t k --> r1
+ 183           	;
+ 184           	; variaveis locais:
+ 185           	;   uint16_t p -------> r2  ; Bits menos significativos
+ 186           	;   uint16_t p -------> r3  ; Bits mais significativos
+ 187           	;
+ 188           	; Parametros de saida:
+ 189           	;   uint32_t p -------> r0, r1
+ 190           	;
+ 191           	umull:
+ 192 00A6 04 24	    PUSH R4
+ 193           	
+ 194           	                        ; compare_menor dos registos
+ 195 00A8 80 B8		CMP r0, r1
+ 196 00AA 03 48		BHS before_while    ; aqui o r1 é menor que o r0
+ 197           	
+ 198           	                        ; faz troca
+ 199 00AC 03 B0	    MOV r3, r0          ; mete o M no r4
+ 200 00AE 80 B0	    MOV r0, r1          ; mete no M o m
+ 201 00B0 81 B1	    MOV r1, r3          ; mete no m o r4  (que é o M)
+ 202           	
+ 203           	before_while:
+ 204 00B2 04 60	    MOV r4, #0
+ 205           	    
+ 206 00B4 02 60	    MOV r2, #0          ; accumulado/p [0]
+ 207 00B6 03 60	    MOV r3, #0          ; accumulado/p [1]
+ 208           	
+ 209           	while:
+ 210 00B8 C0 B8	    CMP	r4, r1
+ 211 00BA 05 48	    BHS	while_end       ; 0 >= m
+ 212           	
+ 213 00BC 22 80	    ADD	r2, r2, r0
+ 214 00BE 04 60	    MOV r4, #0
+ 215 00C0 33 92	    ADC r3, r3, r4
+ 216           	    
+ 217 00C2 91 A8	    SUB	r1, r1, #1      ; m => contador; m--
+ 218 00C4 F9 5B	    B	while
+ 219           	
+ 220           	while_end:
+ 221           	
+ 222 00C6 04 04	    POP R4 
+ 223           	
+ 224 00C8 00 B1	    MOV r0, r2
+ 225 00CA 81 B1	    MOV r1, r3
+ 226 00CC 0F B7	    MOV pc, lr          ; return do p no r0 e r1
+ 227           	
+ 228           	;END UMULL
+ 229           	
+ 230           	
+ 231           	
+ 232           	;
+ 233           	; >> Função CLAMP_VALUE <<
+ 234           	; Tipo: - FOLHA -
+ 235           	; Parametros de entrada:
+ 236           	;   uint16_t val --> r0
+ 237           	;   uint16_t min --> r1
+ 238           	;   uint16_t max --> r2
+ 239           	;
+ 240           	; variaveis locais:
+ 241           	;   --Sem variáveis locais --
+ 242           	;
+ 243           	; Parametros de saida:
+ 244           	;   uint32_t val -------> r0
+ 245           	;
+ 246           	clamp_value_func:
+ 247           	
+ 248 00CE 10 B8	    CMP r1, r0  ; if( val < min )
+ 249 00D0 02 54	    BLT else
+ 250 00D2 80 B0	    MOV r0, r1
+ 251 00D4 03 58	    B return
+ 252           	else:
+ 253 00D6 00 B9	    CMP r0, r2  ; if( val > max )
+ 254 00D8 01 54	    BLT return
+ 255 00DA 00 B1	    MOV r0, r2
+ 256           	
+ 257           	return:
+ 258 00DC 0F B7	    MOV PC, LR
+ 259           	;END CLAMP_VALUE
+ 260           	
+ 261           	
+ 262           	    .data
+ 263           	
+ 264          	array_k1: .byte 10, 5, 2, 0
+ 264 00DE 0A 05 02 00
+ 265          	array_k2: .byte 35, 38, 42, 45, 0
+ 265 00E2 23 26 2A 2D 00
+ 266          	array_k3: .byte 205, 154, 0, 45, 35, 0
+ 266 00E7 CD 9A 00 2D 23 00
+ 267           	
+ 268          	array_s1: .byte 8, 20, 8, 0
+ 268 00ED 08 14 08 00
+ 269          	array_s2: .byte 5, 5, 5, 5, 0
+ 269 00F1 05 05 05 05 00
+ 270          	array_s3: .byte 8, 8, 0, 5, 5, 0
+ 270 00F6 08 08 00 05 05 00
+ 271           	
+ 272          	    .align 1
+ 273           	
+ 274 00FC 00   	array_vals1: .space 12 ;[6] words
+ 274 .... ..
+ 274 0107 00
+ 275 0108 00   	array_vals2: .space 12 ;[6] words
+ 275 .... ..
+ 275 0113 00
+ 276 0114 00   	array_vals3: .space 14 ;[6] words
+ 276 .... ..
+ 276 0121 00
+ 277           	
+ 278           	
+ 279           	    .stack
+ 280 0122 00   	    .space STACK_SIZE
+ 280 .... ..
+ 280 0161 00
+ 281           	stack_top:
+ 281           	 
