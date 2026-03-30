@@ -1,6 +1,5 @@
-    .equ STACK_SIZE, 64
+    .equ STACK_SIZE, 32
     .equ VAL_MIN, 0x0005
-    .equ MASK, 0x8000
 
     .text 
 
@@ -16,7 +15,6 @@ stack_top_addr:
 
 ;START MAIN
 main:
-    PUSH LR
 
     MOV r0, #100
     LDR r1, array_vals1_addr
@@ -47,17 +45,7 @@ main:
     
     MOV r6, r0
 
-    ;n3
-    MOV r0, #0
-    LDR r1, array_vals4_addr
-    LDR r2, array_k4_addr
-    LDR r3, array_s4_addr
-
-    BL build_sequence
-    
-    MOV r7, r0
-
-    POP PC
+    B .
 
 ;END MAIN
 
@@ -134,10 +122,6 @@ array_vals2_addr: .word array_vals2
 array_s3_addr:   .word array_s3
 array_k3_addr:   .word array_k3
 array_vals3_addr: .word array_vals3
-
-array_s4_addr:   .word array_s4
-array_k4_addr:   .word array_k4
-array_vals4_addr: .word array_vals4
 
 
 ;
@@ -341,19 +325,16 @@ return:
 array_k1: .byte 205, 154, 102, 51, 0
 array_k2: .byte 35, 38, 42, 45, 0
 array_k3: .byte 205, 154, 0, 45, 35, 0
-array_k4: .byte 200, 100, 255, 0
 
 array_s1: .byte 8, 8, 8, 8, 0
 array_s2: .byte 5, 5, 5, 5, 0
 array_s3: .byte 8, 8, 0, 5, 5, 0
-array_s4: .byte 5, 2, 11, 0
 
     .align 1
 
 array_vals1: .space 10 ;[5] words
 array_vals2: .space 10 ;[5] words
 array_vals3: .space 12 ;[6] words
-array_vals4: .space 8 ;[4] words
 
 
     .stack
