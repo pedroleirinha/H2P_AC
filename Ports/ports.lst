@@ -1,0 +1,12 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\ports.lst	Fri Apr 24 19:20:10 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0000 0
+
+Symbols
+Name                    Type      Value       Section
+
+Code listing
+   1           	    .text
+   1           	    

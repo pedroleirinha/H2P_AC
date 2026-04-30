@@ -1,0 +1,124 @@
+P16 assembler v1.5 (Feb  9 2024)	TP4.lst	Wed Apr 29 22:56:37 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0044 68
+1       .stack          2000      0040 64
+
+Symbols
+Name                    Type      Value       Section
+BCD_MASK                ABSOLUTE  000F 15     .text
+display                 LABEL     003A 58     .text
+display_addr            LABEL     0028 40     .text
+inport_read             LABEL     002A 42     .text
+input_port_addr         LABEL     0036 54     .text
+INPUTPORT_ADDR          ABSOLUTE  FC00 64512  .text
+line#54                 LABEL     0026 38     .text
+line#9                  LABEL     0002 2      .text
+main                    LABEL     000A 10     .text
+out_port_addr           LABEL     0038 56     .text
+outport_write           LABEL     0030 48     .text
+OUTPUTPORT_ADDR         ABSOLUTE  F800 63488  .text
+program                 LABEL     0004 4      .text
+STACK_SIZE              ABSOLUTE  0040 64     .text
+stack_top               LABEL     2040 8256   .stack
+stack_top_addr          LABEL     0008 8      .text
+while_loop              LABEL     000E 14     .text
+
+Code listing
+   1          	    .equ STACK_SIZE, 64
+   2          	    .equ BCD_MASK, 0x000F
+   3          	    .equ INPUTPORT_ADDR, 0xFC00
+   4          	    .equ OUTPUTPORT_ADDR, 0xF800
+   5           	
+   6           	    .text 
+   7           	
+   8 0000 01 58	    B program
+   9 0002 FF 5B	    B . ; Reservado (ISR)
+  10           	
+  11           	program:
+  12 0004 1D 0C	    LDR sp, stack_top_addr
+  13 0006 01 58	    B   main
+  14           	
+  15           	stack_top_addr:
+  16 0008 40 20	    .word stack_top
+  17           	
+  18           	
+  19           	;START MAIN
+  20           	main:
+  21           	
+  22 000A 00 60	    mov r0, #0
+  23 000C 11 5C	    bL outport_write
+  24           	
+  25           	while_loop:
+  26           	
+  27 000E 0D 5C	    BL inport_read
+  28           	    
+  29           	
+  30 0010 81 E0	    LSL r1, r0, #1 ; FAZ um shift left para sacar o bit de EN
+  31 0012 FD 4F	    BCC while_loop ; SE nao houver carry, quer dizer que o A15 era 0
+  32           	
+  33           	
+  34           	
+  35 0014 F2 60	    MOV r2, #BCD_MASK ;
+  36 0016 00 C1	    AND r0, r0, r2  ; Ficamos com os 4 bits menos significativos correspondente ao BCD
+  37           	                    ; Fica logo no r0 para poder passar 
+  38           	
+  39 0018 93 60	    MOV r3, #9
+  40 001A 30 B8	    cmp r3, r0      ; Verifica se o valor do BCD é menor que 9
+  41           	                    ; Se for <9 escreve no output port
+  42           	
+  43 001C F8 4F	    BLO while_loop
+  44           	
+  45 001E 41 0C	    ldr r1, display_addr
+  46 0020 10 18	    ldrb r0, [r1, r0]
+  47           	
+  48           	    ;output value
+  49 0022 06 5C	    BL outport_write ; Escreve no Output o value em R0
+  50           	
+  51 0024 F4 5B	    B while_loop
+  52           	
+  53           	
+  54 0026 FF 5B	    B .
+  55           	
+  56 0028 3A 00	display_addr:   .word display
+  57           	
+  58           	inport_read:
+  59 002A 50 0C	    ldr r0, input_port_addr
+  60 002C 00 00	    ldr r0, [r0]
+  61           	
+  62 002E 0F B7	    mov pc, lr
+  63           	
+  64           	
+  65           	outport_write:
+  66 0030 31 0C	    ldr r1, out_port_addr
+  67 0032 90 28	    strb r0, [r1, #1]
+  68           	
+  69 0034 0F B7	    mov pc, lr
+  70           	
+  71           	
+  72           	input_port_addr:
+  73 0036 00 FC	    .word INPUTPORT_ADDR
+  74           	
+  75           	out_port_addr:
+  76 0038 00 F8	    .word OUTPUTPORT_ADDR
+  77           	    
+  78           	display:
+  79 003A 3F	    .byte 0b00111111 ; zero
+  80 003B 06	    .byte 0b00000110 ; um
+  81 003C 5B	    .byte 0b01011011 ; dois
+  82 003D 4F	    .byte 0b01001111 ; tres
+  83 003E 66	    .byte 0b01100110 ; quatro
+  84 003F 6D	    .byte 0b01101101 ; cinco
+  85 0040 7D	    .byte 0b01111101 ; seis
+  86 0041 07	    .byte 0b00000111 ; sete
+  87 0042 7F	    .byte 0b01111111 ; oito
+  88 0043 6F	    .byte 0b01101111 ; nove
+  89           	
+  90           	
+  91           	    .stack
+  92 2000 00   	    .space STACK_SIZE
+  92 .... ..
+  92 203F 00
+  93           	stack_top:
+  93           	 
