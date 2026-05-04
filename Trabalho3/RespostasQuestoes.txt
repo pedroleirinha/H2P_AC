@@ -1,0 +1,68 @@
+AC - Trabalho #3
+
+
+Questão 1
+--------
+
+"A zona compreendida entre os endereços 8000 e 9FFF é interdita", é uma afirmação falsa do ponto de vista da sua utilização. A zonda mencionada é mapeada por dois elementos de memória que são antagónicos na sua função, a ROM só será endereçada a quando da realização de uma leitura, estando a sua saída de dados em alta impedancia quando é realizada a execução de escrita no registo de porto de saída, que terá apenas e só a função de escrita. Não haverá por essa razão ocorrencia de duas ou mais memória a carregar barramento de dados em simultâneo no acesso de leitura.
+
+
+
+Questão 2
+---------
+
+Zona compreendida entre 7FFF - 6000 = 1FFF => 8192 bytes ou seja 8Kbytes de endereçamento.
+Zona compreendida entre FFFF - E000 = 1FFF => 8192 bytes ou seja 8Kbytes de endereçamento.
+
+Com está mencionado, através da representação, que a RAM #2 está em foldback, trata-se portanto, de apenas uma memória de 16bits, de tamanho da palavra, por 8Kb de endereçamento, ou seja, 16Kbytes de memória.
+     
+ 
+Questão 3
+---------
+A15	A14	A13	A12
+ 0	 1   1   1	7FFF
+ 0	 1   1	 0	6000
+ 1   1   1   1  FFFF
+ 1   1   1   0  EFFF
+
+A memória RAM #2 como está em foldback nas zonas mencionadas, terá então, o bit A15 a "don't care", para assim, quando for 1 estará na zona de memória compreendida entre FFFF - E000, e quando for 0 estará na zona 7FFF - 6000.
+
+
+
+Questão 5
+---------
+PC=0x1000
+
+	.text
+	ldr r3, sym			  M1/DBus: 0000 1100 0101 0011 - 0x0C53
+	                    M1/ADDBus: 0x1000
+					    
+						  M2/DBus: 0xE000
+					    M2/ADDBus: 0x1000
+	
+	strb r3, [ r0, #0]	  M1/DBus: 0010 1000 0011 0000 - 0x2830
+	                    M1/ADDBus: 0x1001
+
+
+	pop r4				  M1/DBus: 0000 0100 0000 0100 - 0x0404
+	                    M1/ADDBus: 0x1002
+	
+	mov r5, r15			  M1/DBus: 1011 0010 1000 1110 - 0xB28E
+						M1/ADDBus: 0x1003
+	
+	
+	str r5, [ r1, #0]     M1/DBus: 0010 0000 0001 0101 - 0x2015
+						M1/ADDBus: 0x1004
+	
+	
+   ldrb r6, [ r2, #0]     M1/DBus: 
+						M1/ADDBus: 0x1006
+	
+sym :
+
+	.word val			
+	
+	
+	.data
+val :
+	.word 0xACE2		
