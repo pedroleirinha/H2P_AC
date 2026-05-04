@@ -1,0 +1,30 @@
+Lab03 AC
+
+
+
+Preparação ao laboratório
+
+
+Pergunta 3.2
+
+
+Pergunta 1.
+
+
+ Os dispositivos de memória instalados na placa SDP16 são os dispositivos U23 e U25 em que ambos são do tipo RAM(Random Acess Memory) uma vez que recebem como entrada WE
+ write enable e OE output enable, o que difere da ROM que só recebe como entrada OE output enable.
+Em termos de organização ambas as RAM estão em paralelo uma vez que partilham os mesmos endereços(A1-A14), no que diz respeito á sua capacidade individual, ambos têm (2^14 A x 8bits=1byte D) ou seja 2^14 = 16.384 bytes por cada chips. Uma vez que são 2 chips idênticos temos 32.768 bytes. Individualmente cada um pode acessar á escrita de e leitura de bytes e em conjunto á escrita e leitura de words sendo U25 a parte baixa e o U23 a parte alta uma vez que o barramento de dados é de 0 a 7 e de 8 a 15.
+
+
+
+
+
+Pergunta 2.
+
+
+Os portos instalados na placa SDP16 são o U6 que é um porto de memória, o U16 que é um porto de saída. Ambos apenas têm modo de acesso byte-wise uma vez que só recebem 8 bits do barramento de dados. Como tanto Incoming_Data como Outgoing_Data têm 1 byte  a dimensão de cada porto é de 1 x 1 = 1 byte.
+
+
+
+3.
+
