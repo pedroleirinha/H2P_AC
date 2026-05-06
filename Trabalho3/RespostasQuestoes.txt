@@ -66,3 +66,12 @@ sym :
 	.data
 val :
 	.word 0xACE2		
+
+
+https://docs.google.com/spreadsheets/d/1Cc73iW94gOvIHfCq_DsJbpgCfJoqtd-3IdAiG9sc01g/edit?usp=sharing
+
+
+
+
+
+
