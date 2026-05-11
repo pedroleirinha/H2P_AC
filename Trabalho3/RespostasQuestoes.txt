@@ -25,47 +25,83 @@ A15	A14	A13	A12
  1   1   1   1  FFFF
  1   1   1   0  EFFF
 
-A memória RAM #2 como está em foldback nas zonas mencionadas, terá então, o bit A15 a "don't care", para assim, quando for 1 estará na zona de memória compreendida entre FFFF - E000, e quando for 0 estará na zona 7FFF - 6000.
+A memória RAM #2 como está em foldback nas zonas mencionadas, terá então, o bit A15 a "don't care", para assim, quando for 1 estará na zona de memória compreendida
+ entre FFFF - E000, e quando for 0 estará na zona 7FFF - 6000.
+
+
 
 
 
 Questão 5
 ---------
-PC=0x1000
+R0=0x6000, R1=0x9001, R2=0x9000, SP=0x5FFE e PC=0x1000
 
 	.text
-	ldr r3, sym			  M1/DBus: 0000 1100 0101 0011 - 0x0C53
+	ldr r3, sym			  M1/DBus: 0000 1100 0000 0011 - 0x0C53 -> 0000 1101 0000 0011 -> 0x0D03
 	                    M1/ADDBus: 0x1000
 					    
-						  M2/DBus: 0xE000
-					    M2/ADDBus: 0x1000
+						  M2/DBus: 0xE000 --valor de val
+					    M2/ADDBus: 0x1022
 	
-	strb r3, [ r0, #0]	  M1/DBus: 0010 1000 0011 0000 - 0x2830
-	                    M1/ADDBus: 0x1001
-
-
-	pop r4				  M1/DBus: 0000 0100 0000 0100 - 0x0404
+	strb r3, [ r0, #0]	  M1/DBus: 001010 immed_3 Rn Rd -> 001010 000 00011 -> 0x0A03
 	                    M1/ADDBus: 0x1002
+						
+						  M2/DBus: 0xE2E2 (por ser byte repete nos dois bytes)
+	                    M2/ADDBus: 0x6000 (o que está em R0)
+						
+
+	pop r4				  M1/DBus: 0000 0100 0000 0100 -> 0x0404
+	                    M1/ADDBus: 0x1004
+						
+						  M2/DBus: ZZZZ - Alta impedancia porque não está definido a diretiva .Stack no programa.
+	                    M2/ADDBus: 0x5FFE
+						
 	
-	mov r5, r15			  M1/DBus: 1011 0010 1000 1110 - 0xB28E
-						M1/ADDBus: 0x1003
-	
-	
-	str r5, [ r1, #0]     M1/DBus: 0010 0000 0001 0101 - 0x2015
-						M1/ADDBus: 0x1004
-	
-	
-   ldrb r6, [ r2, #0]     M1/DBus: 
+	mov r5, r15			  M1/DBus: 1011011110000101 - 0xB785     | Nota: R15 é o PC !!!   
 						M1/ADDBus: 0x1006
 	
-sym :
+	
+	str r5, [ r1, #0]     M1/DBus: 0010 0000 0001 0101 - 0x2015   STR Rd, [Rn, #immed_4] 0010 0000 0001 0101 -> 0x2015
+						M1/ADDBus: 0x1008
+						
+						  M2/DBus: 0x100A  --> Conteudo de r5
+						M2/ADDBus: 0x9001 (r1) --> Com está em fold back o endereço 0x9001 equivale ao endereço 0x1001. não ocorrerá conflito porque o porto é escrita e a ROM é leitura.
+						
+	
 
-	.word val			
+   ldrb r6, [ r2, #0]     M1/DBus: 000010 000 010 0110 --> 0x0826
+						M1/ADDBus: 0x100A
+						
+						  M2/DBus: 0x0C53 --> é o que está na memoria para gravar em R6.
+						M2/ADDBus: 0x9000 --> Como a ROM está em fold-back o endereço 0x9000 coresponde ao 0x1000, onde está localizada a primeira instrução do programa.
+						
+	
+	. space 22
+	1
+	2
+	3
+	4
+	5
+	6
+	7
+	8
+	9
+	10
+	11
+	
+	
+sym : 
+
+	.word val    <-- 0x100C + 22 bytes = 0x1022
 	
 	
 	.data
-val :
+val :            <-- 0xE000
 	.word 0xACE2		
+
+
+
+
 
 
 https://docs.google.com/spreadsheets/d/1Cc73iW94gOvIHfCq_DsJbpgCfJoqtd-3IdAiG9sc01g/edit?usp=sharing
@@ -81,6 +117,9 @@ https://drive.google.com/file/d/1VqUf0wDpnEik-BY8cOp9odWnGKSWK65k/view?usp=shari
 
 
 
-
-
+0x0000 - 0000 0000 0000 0000
+0x1FFF - 0001 1111 1111 1111
+         |||
+		 
+		A15 A14 A13
 
