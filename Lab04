@@ -1,0 +1,60 @@
+1.
+
+2.  0x10
+
+No processador P16, o controlo de habilitação e inibição de interrupções é realizado através da flag I (Interrupt Enable), que está localizada no bit 4 do registo CPSR
+
+
+
+3.
+
+Se o quarto bit do CPSR estiver ativo, ativamos a flag de interrupção e esse bloco de código é executado. O código simplesmente incrementa em "1" a variável var. Depois retorna para o main e continua no main_loop.
+
+
+4.
+
+O programa no ficheiro lab04_ex1.s tem como funcionalidade principal a contagem de eventos externos através de interrupções. A rotina main inicializa uma variável global var a zero, habilita o atendimento de interrupções externas ao configurar a flag I no registador CPSR (bit 4) com o valor 0x10, e entra num ciclo infinito que atualiza continuamente o porto de saída (0xFFC0) com o valor atual de var. Quando ocorre um pedido de interrupção externa (IRQ), o CPU suspende o programa principal, executa uma rotina de serviço à interrupção (ISR) que incrementa a variável var e, após o retorno atómico via movs pc, lr, o novo valor é refletido nos LEDs da placa através do loop principal.
+
+
+
+
+2.
+
+
+
+1.
+
+
+O circuito Falling Edge Detector (FED) apresentado na Figura 1a tem como funcionalidade principal a deteção de uma transição descendente (flanco de descida) num sinal de entrada e a manutenção desse estado até ser explicitamente limpo pelo processador.
+
+
+
+2.
+
+
+As alterações no ficheiro lab04_ex2.s face ao lab04_ex1.s focam-se na adaptação do software ao hardware real através da gestão do circuito FED (Falling Edge Detector). No ex2, a rotina main realiza uma limpeza preventiva do hardware e a rotina de interrupção (ISR) inclui obrigatoriamente um mecanismo de Acknowledge, efetuando uma escrita no endereço 0xFF40 (FED_ADDRESS) para fazer o reset do Flip-Flop e permitir a deteção de novos eventos. Além disso, o código apresenta uma estrutura mais organizada, utilizando o carregamento do endereço da ISR para o PC no vetor de interrupção (endereço 2), garantindo uma salvaguarda de contexto e um retorno atómico mais robustos para evitar a corrupção do programa principal.
+
+
+
+6.
+
+nInt_EXIT
+
+
+O P16 possui uma única entrada de interrupção externa, a nINT_EXT.  Este sinal é ativo a nível baixo (0), sendo diretamente compatível com a saída nINT do FED, que transita para '0' ao detetar um flanco de descida. A ligação permite que o hardware sinalize o evento ao CPU, sendo o FED responsável por repor o sinal a '1' após o reconhecimento (Acknowledge) efetuado pelo software.
+
+
+8.
+
+nWrl
+
+
+
+O sinal nWRL (Write Low) é ativado (nível lógico '0') sempre que o processador P16 realiza uma operação de escrita num endereço de memória ou periférico.
+Ao ligar este sinal à entrada nCLR do FED, o processador consegue efetuar o Acknowledge (reconhecimento/limpeza) do evento. Quando o software executa uma instrução de escrita no endereço mapeado para o FED (como 0xFF40), o sinal nWRL força o reset do Flip-Flop, repondo a saída nINT no estado inativo ('1') e preparando o hardware para a próxima deteção.
+
+
+
+
+
+
