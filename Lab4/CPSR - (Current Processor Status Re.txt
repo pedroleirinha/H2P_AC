@@ -1,0 +1,70 @@
+CPSR - (Current Processor Status Register) Registo de 6 bits.
+Tem 6 flags: 
+
+  0         1            2                3                            4              5
+Z[ero] | C[arry] | V[alue Overflow] | N[egative] -------- || --------  I[nterrupt Enable]  |  M[ode]
+                                                          || Default:         1            |    0
+
+
+O I - Interrupt Enable, indica se o CPU está disponivel para ser interrumpido ou não. Se estiver a 0, pode significar que o CPU já está a responder a 
+uma interrupção.
+
+O M - Mode, indica que o CPU está no modo de Interrupção e está no momento a executar uma rotina de interrupt.
+	Assim que o M = 1, o CPU faz uma cópia do PC para o iLR e internamente passa a usar o registo iLR em vez do LR normal.
+
+O CPU utiliza o iLR para todas as operações que envolvam o registo R14 (como a instrução bl dentro da ISR ou o retorno com movs pc, lr) até que a 
+interrupção seja concluída.
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Quando um pedido de interrupção é aceite, o sistema de controlo do P16 realiza automaticamente as seguintes ações num único estado.
+- Coloca a flag I a 0 para inibir futuras interrupções e a flag M a 1, para avisar o CPU que está a correr a rotina de interrupção e deve usar os r
+egistos corretos para isso.
+- Passa as flags de CPSR para SPSR.
+- Passa o PC counter para o iLR (guarda o local onde estava antes de ser interrumpido).
+
+
+Embora o código da ISR possa estar em qualquer lugar da memória, a arquitetura do P16 define um local fixo e obrigatório para o processador saltar 
+assim que aceita uma interrupção: o endereço 2 (0x0002) imediatamente a seguir ao "b program" (que está no 0x0000).
+
+Durante o atendimento da interrupção, o hardware força automaticamente o valor 2 para o registo PC (Program Counter)
+Podemos ter o código de interrupção numa rotina e executa-la através do "b isr" (isr seria a label definida para a função)
+
+Se a função de interrupção estiver muito longe da linha a ser executada (o offset pode não chegar) é possivel fazer o load para o pc diretamente: 
+  ldr pc, isr_addr
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Fluxo natural das interrupções:
+
+- No inicio a flag I começa a 0. Ou seja, não ha interrupções possiveis. Se quisermos permitir uma interrupção é necessário colocar a flag I = 1,
+colocando o valor 0x10 no CPSR.  (Isto não é o suficiente para haver interrupção)
+
+- No momento em que o CPU deteta que a entrada nInt_EXT está ativa e a flag I está ativa, é que temos um pedido real de interrupção e o CPU vai responder.
+
+- Ao responder, o CPU passa o I para 0 e o M para 1, para sinalizar que já está a executar uma rotina de interrupção.
+
+- As flags de CPSR são guardadas no SPSR e o PC no iLR
+
+
+---------------------------------------------------------------------------------------------------------------------------
+
+IRQ => Interrupt Request Signal --- (Avisa que ha um pedido generico de alguem, que no fim vai parar à entrada nINT_EXT do P16)
+
+
+---------------------------------------------------------------------------------------------------------------------------
+
+O nCS é o sinal chip-select que juntamente com o nCLR (clear) faz limpar o FED.
+
+O sinal nCS_EXT0 está associado à gama de endereços 0xFF00 a 0xFF3F, enquanto o sinal 
+        nCS_EXT1 está associado à gama de endereços 0xFF40 a 0xFF7F
+
+
+Para limpar o LATCH, é necessário ativar os dois sinais, o nCS e o nCLR do circuito integrado.
+O nCS podemos ativar colocando o endereço que selecione aquela saida, no caso do nCS_EXT1, podia ser qualquer endereço entre 0xFF40 a 0xFF7F.
+Como no barramento vamos ter FF40, o selector enable vai ficar automaticamente ativo.
+
+Para ativar o nCLR, ligamos o sinal do circuito ao sinal nRD, nWL ou nWH.
+Depois temos que realizar uma instrução em código que ative essa saida. Se for um nRD, temos de realizar um Load.
+Caso seja um nWL ou nWH temos de fazer uma escrita [str, strb, push] para que a respetiva saida (nRD, nWL ou nWH) fique ativa.

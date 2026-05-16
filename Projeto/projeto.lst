@@ -1,0 +1,140 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Projeto\projeto.lst	Fri May 15 22:40:47 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      004C 76
+1       .data           004C      0001 1
+2       .stack          004E      0040 64
+
+Symbols
+Name                    Type      Value       Section
+ENABLE_EXTINT           ABSOLUTE  0010 16     .text
+FED_ADDRESS             ABSOLUTE  FF00 65280  .text
+isr                     LABEL     002A 42     .text
+main                    LABEL     000A 10     .text
+main_loop               LABEL     0020 32     .text
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .text
+outport_write           LABEL     0044 68     .text
+program                 LABEL     0004 4      .text
+STACK_SIZE              ABSOLUTE  0040 64     .text
+stack_top               LABEL     008E 142    .stack
+stack_top_addr          LABEL     0008 8      .text
+var                     LABEL     004C 76     .data
+var_addr_isr            LABEL     0042 66     .text
+var_addr_main           LABEL     0028 40     .text
+VAR_INIT_VAL            ABSOLUTE  0000 0      .text
+
+Code listing
+   1           	; Ficheiro:  lab04_ex2.S
+   2           	; Descricao: Programa para a realizacao da 4a atividade laboratorial de
+   3           	;            Arquitetura de Computadores.
+   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
+   5           	; Data:      09-05-2025
+   6           	
+   7           	; Definicao dos valores dos simbolos utilizados no programa
+   8           	;
+   9          		.equ	STACK_SIZE, 64                ; Dimensao do stack, em bytes
+  10           	
+  11           	; *** Inicio de troco para completar ***
+  12          		.equ	ENABLE_EXTINT, 0x10         ; ??
+  13           	; *** Fim de troco para completar ***
+  14           	
+  15          		.equ	OUTPORT_ADDRESS, 0xFFC0       ; Endereco do porto de saida
+  16           	
+  17           	; *** Inicio de troco para completar ***
+  18          		.equ	FED_ADDRESS, 0xFF00           ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
+  19           	; *** Fim de troco para completar ***
+  20           	
+  21          		.equ	VAR_INIT_VAL, 0               ; Valor inicial de var
+  22           	
+  23           	; Seccao:    text
+  24           	; Descricao: Guarda o codigo do programa
+  25           	;
+  26           		.text
+  27 0000 01 58		b	program
+  28 0002 13 58		b	isr
+  29           	program:
+  30 0004 1D 0C		ldr	sp, stack_top_addr
+  31 0006 01 58	    b   main
+  32           	
+  33           	stack_top_addr:
+  34 0008 8E 00		.word	stack_top
+  35           	
+  36           	; Rotina:    main
+  37           	; Descricao: *** Para completar ***
+  38           	; Entradas:  *** Para completar ***
+  39           	; Saidas:    *** Para completar ***
+  40           	; Efeitos:   *** Para completar ***
+  41           	main:
+  42 000A 00 60		mov	r0, #VAR_INIT_VAL
+  43 000C D1 0C		ldr	r1, var_addr_main
+  44 000E 10 28		strb	r0, [r1, #0]     ; Mete var = 0
+  45           	
+  46 0010 19 5C		bl	outport_write		 ; Escreve o zero no output port
+  47 0012 00 60		mov	r0, #FED_ADDRESS & 0xFF
+  48 0014 F0 7F		movt	r0, #(FED_ADDRESS >> 8) & 0xFF
+  49 0016 00 28		strb	r0, [r0, #0]
+  50           	
+  51 0018 60 B0		mrs	r0, cpsr
+  52 001A 01 61		mov	r1, #ENABLE_EXTINT
+  53 001C 80 C8		orr	r0, r0, r1
+  54 001E 40 B0		msr	cpsr, r0
+  55           	main_loop:
+  56 0020 30 0C		ldr	r0, var_addr_main
+  57 0022 00 08		ldrb	r0, [r0, #0]
+  58 0024 0F 5C		bl	outport_write
+  59 0026 FC 5B		b	main_loop
+  60           	
+  61           	var_addr_main:
+  62 0028 4C 00		.word	var
+  63           	
+  64           	; Rotina:    isr
+  65           	; Descricao: *** Para completar ***
+  66           	; Entradas:  *** Para completar ***
+  67           	; Saidas:    *** Para completar ***
+  68           	; Efeitos:   *** Para completar ***
+  69           	isr:
+  70 002A 01 24		push	r1
+  71 002C 00 24		push	r0
+  72 002E 00 60		mov	r0, #FED_ADDRESS & 0xFF
+  73 0030 F0 7F		movt	r0, #(FED_ADDRESS >> 8) & 0xFF
+  74 0032 02 28		strb	r2, [r0, #0]
+  75 0034 60 0C		ldr	r0, var_addr_isr
+  76 0036 01 08		ldrb	r1, [r0, #0]
+  77 0038 91 A0		add	r1, r1, #1
+  78 003A 01 28		strb	r1, [r0, #0]
+  79 003C 00 04		pop	r0
+  80 003E 01 04		pop	r1
+  81 0040 20 B0		movs	pc, lr
+  82           	
+  83           	var_addr_isr:
+  84 0042 4C 00		.word	var
+  85           	
+  86           	; Rotina:    outport_write
+  87           	; Descricao: Escreve num porto de saida a 8 bits o valor passado como argumento.
+  88           	;            Interface exemplo: void outport_write( uint8_t value );
+  89           	; Entradas:  r0 - valor a escrever no porto de saida
+  90           	; Saidas:    -
+  91           	; Efeitos:   r1 - guarda o endereco do porto alvo da escrita
+  92           	outport_write:
+  93 0044 01 6C		mov	r1, #OUTPORT_ADDRESS & 0xFF
+  94 0046 F1 7F		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+  95 0048 10 28		strb	r0, [r1, #0]
+  96 004A 0F B7		mov	pc, lr
+  97           	
+  98           	; Seccao:    data
+  99           	; Descricao: Guarda as variaveis globais
+ 100           	;
+ 101           		.data
+ 102           	var:
+ 103 004C 00   		.space	1
+ 104           	
+ 105           	; Seccao:    stack
+ 106           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
+ 107           	;
+ 108           		.stack
+ 109 004E 00   		.space	STACK_SIZE
+ 109 .... ..
+ 109 008D 00
+ 110           	stack_top:
+ 110           	

@@ -1,0 +1,205 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Lab3\lab03.lst	Wed May 06 22:54:09 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0076 118
+1       .stack          0076      0040 64
+
+Symbols
+Name                    Type      Value       Section
+ALL_ONES                ABSOLUTE  FFFF 65535  .text
+ALL_ZEROS               ABSOLUTE  0000 0      .text
+increment               LABEL     0030 48     .text
+INPORT_ADDRESS          ABSOLUTE  FF80 65408  .text
+inport_read             LABEL     004C 76     .text
+line#22                 LABEL     0002 2      .text
+loop                    LABEL     0018 24     .text
+main                    LABEL     000A 10     .text
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .text
+outport_write           LABEL     0054 84     .text
+period                  LABEL     006E 110    .text
+period_addr             LABEL     0040 64     .text
+program                 LABEL     0004 4      .text
+sleep                   LABEL     005C 92     .text
+sleep_end               LABEL     006C 108    .text
+sleep_inner_loop        LABEL     0064 100    .text
+sleep_outer_loop        LABEL     0060 96     .text
+STACK_SIZE              ABSOLUTE  0040 64     .text
+stack_top               LABEL     00B6 182    .stack
+stack_top_addr          LABEL     0008 8      .text
+start_sleep             LABEL     0032 50     .text
+validate_bit            LABEL     0042 66     .text
+
+Code listing
+   1           	; Ficheiro:  lab03.s
+   2           	; Descricao: Programa para a realizacao da 3a atividade laboratorial de
+   3           	;            Arquitetura de Computadores.
+   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
+   5           	; Data:      29-04-2025
+   6           	
+   7           	; Definicao dos valores dos simbolos utilizados no programa
+   8           	;
+   9          		.equ	STACK_SIZE, 64                ; Dimensao do stack, em bytes
+  10           	
+  11          		.equ	ALL_ONES, 0xFFFF              ; Palavra com todos os bits a 1
+  12          		.equ	ALL_ZEROS, 0x0000             ; Palavra com todos os bits a 0
+  13           	
+  14          		.equ	INPORT_ADDRESS, 0xFF80        ; Endereco base do porto de entrada U6 (nCS_IN)
+  15          		.equ	OUTPORT_ADDRESS, 0xFFC0       ; Endereco base do porto de saida U16 (nCS_OUT)
+  16           	
+  17           	; Seccao:    text
+  18           	; Descricao: Guarda o codigo do programa
+  19           	;
+  20           		.text
+  21 0000 01 58		b	program
+  22 0002 FF 5B		b	.		; Reservado para a ISR
+  23           	program:        
+  24 0004 1D 0C		ldr	sp, stack_top_addr
+  25 0006 01 58		b	main
+  26           	
+  27           	stack_top_addr:
+  28 0008 B6 00		.word	stack_top
+  29           	
+  30           	; Rotina:    main
+  31           	; Descricao: Inicia o porto de saida e executa um ciclo infinito.
+  32           	; Entradas:  Não têm
+  33           	; Saidas:    Não têm
+  34           	; Efeitos:   Altera os registos R0 e R1
+  35           	main:
+  36 000A F0 6F		mov	r0, #ALL_ONES & 0xFF
+  37 000C 23 5C		bl	outport_write
+  38 000E 00 60		mov	r0, #ALL_ZEROS & 0xFF
+  39 0010 21 5C		bl	outport_write
+  40           		
+  41 0012 06 60		MOV r6, #0 ; FLAG SKIP
+  42 0014 05 60		MOV r5, #0 ; CURR_STATE
+  43 0016 03 60		MOV r3, #0
+  44           	loop:
+  45 0018 19 5C		BL	inport_read
+  46           	
+  47 001A 13 5C		BL validate_bit ; VALIDATES 7th BIT
+  48           	
+  49           		
+  50 001C FD 47		BNE loop		; Volta ao inicio ; BIT ESTA ON
+  51           	
+  52           		; BIT ESTA OFF
+  53 001E 30 B8		CMP r3, r0
+  54 0020 FB 47		BNE loop		; Volta ao inicio ; BIT ESTA ON
+  55           	
+  56           	
+  57 0022 E1 0C		LDR r1, period_addr	; Carrega o endereço do array
+  58 0024 12 18		LDRB r2, [R1, R0]	; Carrega do array a posição R0
+  59           		
+  60 0026 04 60		MOV r4, #0
+  61 0028 30 BA		CMP r3, r4
+  62           	
+  63 002A 02 40		BEQ increment
+  64 002C 03 60		MOV r3, #0
+  65           	
+  66 002E 01 58		B start_sleep
+  67           	increment:
+  68 0030 14 60		MOV r4, #1
+  69           	
+  70           	start_sleep:
+  71 0032 00 B1		MOV r0, r2
+  72           		; R0 tem o valor do porto de entrada
+  73 0034 13 5C		BL sleep ; Espera X ciclos
+  74 0036 80 B1		MOV r0, r3
+  75 0038 01 68		MOV r1, #0x80
+  76 003A 80 C8		ORR r0, r0, r1
+  77 003C 0B 5C		bl	outport_write
+  78           	
+  79           	
+  80 003E EC 5B		b	loop
+  81           	
+  82 0040 6E 00	period_addr:   .word period
+  83           	
+  84           	
+  85           	
+  86           	
+  87           	
+  88           	; Rotina:    validate_bi
+  89           	
+  90           	; Entradas:  VALOR
+  91           	; Saidas:    r0 - Lé do hardware os 8 bits menos significativos
+  92           	; Efeitos:   r1 - Utilizado para enderessar o valor do porto
+  93           	validate_bit:
+  94 0042 01 68		MOV r1, #0x80 ; MASK - 1000 0000
+  95 0044 12 C0		AND r2, r1, r0 ; TIRA O BIT MAIS À ESQUERDA PARA VERIFICAR O BIT 7
+  96           		
+  97 0046 01 60		MOV r1, #0
+  98 0048 10 B9		CMP r1, r2
+  99           	
+ 100 004A 0F B7		mov	pc, lr
+ 101           	
+ 102           	
+ 103           	
+ 104           	; Rotina:    inport_read
+ 105           	; Descricao: Adquire e devolve o valor corrente do porto de entrada.
+ 106           	;            Interface exemplo: uint8_t inport_read( );
+ 107           	; Entradas:  -
+ 108           	; Saidas:    r0 - Lé do hardware os 8 bits menos significativos
+ 109           	; Efeitos:   r1 - Utilizado para enderessar o valor do porto
+ 110           	inport_read:
+ 111 004C 01 68		mov	r1, #INPORT_ADDRESS & 0xFF
+ 112 004E F1 7F		movt	r1, #(INPORT_ADDRESS >> 8) & 0xFF
+ 113 0050 10 08		ldrb	r0, [r1, #0]
+ 114 0052 0F B7		mov	pc, lr
+ 115           	
+ 116           	; Rotina:    outport_write
+ 117           	; Descricao: Escreve num porto de saida a 8 bits o valor passado como argumento.
+ 118           	;            Interface exemplo: void outport_write( uint8_t value );
+ 119           	; Entradas:  r0 - Valor a escrever no porto de saida
+ 120           	; Saidas:    -
+ 121           	; Efeitos:   r1 - Registo utilizado para endereçamento do porto.
+ 122           	outport_write:
+ 123 0054 01 6C		mov	r1, #OUTPORT_ADDRESS & 0xFF
+ 124 0056 F1 7F		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+ 125 0058 10 28		strb	r0, [r1, #0]
+ 126 005A 0F B7		mov	pc, lr
+ 127           	
+ 128           	; Rotina:    sleep
+ 129           	; Descricao: Faz um atraso de tempo de #1 em r0 e r1
+ 130           	; Entradas:  Recebe r0
+ 131           	; Saidas:    Não têm
+ 132           	; Efeitos:   Altera os registos R0 e R1
+ 133           	sleep:
+ 134 005C 00 C0		and	r0, r0, r0
+ 135 005E 06 40		beq	sleep_end
+ 136           	sleep_outer_loop:
+ 137 0060 E1 63		mov	r1, #0x3E
+ 138 0062 31 70		movt	r1, #0x03
+ 139           	sleep_inner_loop:
+ 140 0064 91 A8		sub	r1, r1, #1
+ 141 0066 FE 47		bne	sleep_inner_loop
+ 142 0068 80 A8		sub	r0, r0, #1
+ 143 006A FA 47		bne	sleep_outer_loop
+ 144           	sleep_end:
+ 145 006C 0F B7		mov	pc, lr
+ 146           	
+ 147           	; Seccao:    data
+ 148           	; Descricao: Guarda as variaveis globais
+ 149           	;
+ 150           	
+ 151           	;	.data
+ 152           	
+ 153           	period:
+ 154 006E 05		.byte 0x05 ; 1s
+ 155 006F 0A	    .byte 0x0A ; 2s
+ 156 0070 0F	    .byte 0x0F ; 3s
+ 157 0071 14	    .byte 0x14 ; 4s
+ 158 0072 19	    .byte 0x19 ; 5s
+ 159 0073 1E	    .byte 0x1E ; 6s
+ 160 0074 23	    .byte 0x23 ; 7s
+ 161 0075 28	    .byte 0x28 ; 8s
+ 162           	
+ 163           	
+ 164           	; Seccao:    stack
+ 165           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
+ 166           	;
+ 167           		.stack
+ 168 0076 00   		.space	STACK_SIZE
+ 168 .... ..
+ 168 00B5 00
+ 169           	stack_top:
+ 169           	

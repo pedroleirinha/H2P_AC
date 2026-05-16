@@ -1,0 +1,118 @@
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Lab4\lab04_ex1.lst	Tue May 12 16:53:54 2026
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      003E 62
+1       .data           003E      0001 1
+2       .stack          0040      0040 64
+
+Symbols
+Name                    Type      Value       Section
+ENABLE_EXTINT           ABSOLUTE  0010 16     .text
+main                    LABEL     001C 28     .text
+main_loop               LABEL     002C 44     .text
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .text
+outport_write           LABEL     0036 54     .text
+program                 LABEL     0014 20     .text
+STACK_SIZE              ABSOLUTE  0040 64     .text
+stack_top               LABEL     0080 128    .stack
+stack_top_addr          LABEL     0018 24     .text
+var                     LABEL     003E 62     .data
+var_addr_main           LABEL     0034 52     .text
+var_addr_startup        LABEL     001A 26     .text
+VAR_INIT_VAL            ABSOLUTE  0000 0      .text
+
+Code listing
+   1           	; Ficheiro:  lab04_ex1.S
+   2           	; Descricao: Programa para a realizacao da 4a atividade laboratorial de
+   3           	;            Arquitetura de Computadores.
+   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
+   5           	; Data:      09-05-2025
+   6           	
+   7           	; Definicao dos valores dos simbolos utilizados no programa
+   8           	;
+   9          		.equ	STACK_SIZE, 64                ; Dimensao do stack, em bytes
+  10           	
+  11           	; *** Inicio de troco para completar ***
+  12          		.equ	ENABLE_EXTINT, 0x10           ; Para ativar o 4º bit do CPSQ, temos de passar o valor 00010000
+  13           	; *** Fim de troco para completar ***
+  14           	
+  15          		.equ	OUTPORT_ADDRESS, 0xFFC0       ; Endereco do porto de saida
+  16           	
+  17          		.equ	VAR_INIT_VAL, 0               ; Valor inicial de var
+  18           	
+  19           	; Seccao:    text
+  20           	; Descricao: Guarda o codigo do programa
+  21           	;
+  22           		.text
+  23 0000 09 58		b	program
+  24 0002 01 24		push	r1					; Guarda R1 na stack
+  25 0004 00 24		push	r0					; Guarda R0 na stack
+  26 0006 90 0C		ldr	r0, var_addr_startup	; Guarda em R0 o endereço de memoria de R0
+  27 0008 01 08		ldrb	r1, [r0, #0]		; Guarda em r1 o valor de val
+  28 000A 91 A0		add	r1, r1, #1				; Incrementa o valor em R1 por 1 unidade
+  29 000C 01 28		strb	r1, [r0, #0]		; Guarda o R1 incrementado de novo em val.
+  30 000E 00 04		pop	r0						; Retoma o r0
+  31 0010 01 04		pop	r1						; Retoma o r1
+  32 0012 20 B0		movs	pc, lr				; Retorno do LR para o PC e atualiza as flags com as guardadas
+  33           	program:
+  34 0014 1D 0C		ldr	sp, stack_top_addr
+  35 0016 02 58	    b   main
+  36           	
+  37           	stack_top_addr:
+  38 0018 80 00		.word	stack_top
+  39           	
+  40           	var_addr_startup:
+  41 001A 3E 00		.word	var
+  42           	
+  43           	; Rotina:    main
+  44           	; Descricao: *** Para completar ***
+  45           	; Entradas:  *** Para completar ***
+  46           	; Saidas:    *** Para completar ***
+  47           	; Efeitos:   *** Para completar ***
+  48           	main:
+  49 001C 00 60		mov	 r0, #VAR_INIT_VAL ; Mete r0 = 0
+  50 001E A1 0C		ldr	 r1, var_addr_main ; Faz load do endereço de memoria de var para r1
+  51 0020 10 28		strb r0, [r1, #0]	   ; Coloca o 0 no var. var = 0
+  52 0022 09 5C		bl	 outport_write	   ; Escreve o valor zero no outputport
+  53 0024 60 B0		mrs	 r0, cpsr		   ; guarda as flags no r0
+  54 0026 01 61		mov	 r1, #ENABLE_EXTINT; guarda qualquer coisa no R1
+  55 0028 80 C8		orr	 r0, r0, r1		   ; Realiza o OR bit a bit entre os dois
+  56 002A 40 B0		msr	 cpsr, r0		   ; Atualiza o CPSR com as flags em R0
+  57           	main_loop:
+  58 002C 30 0C		ldr	r0, var_addr_main  ; Carrega o endereco do var para R0
+  59 002E 00 08		ldrb	r0, [r0, #0]   ; Carrega o valor real de var para R0
+  60 0030 02 5C		bl	outport_write	   ; 
+  61 0032 FC 5B		b	main_loop
+  62           	
+  63           	var_addr_main:
+  64 0034 3E 00		.word	var	
+  65           	
+  66           	; Rotina:    outport_write
+  67           	; Descricao: Escreve num porto de saida a 8 bits o valor passado como argumento.
+  68           	;            Interface exemplo: void outport_write( uint8_t value );
+  69           	; Entradas:  r0 - valor a escrever no porto de saida
+  70           	; Saidas:    -
+  71           	; Efeitos:   r1 - guarda o endereco do porto alvo da escrita
+  72           	outport_write:
+  73 0036 01 6C		mov	r1, #OUTPORT_ADDRESS & 0xFF
+  74 0038 F1 7F		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+  75 003A 10 28		strb	r0, [r1, #0]
+  76 003C 0F B7		mov	pc, lr
+  77           	
+  78           	; Seccao:    data
+  79           	; Descricao: Guarda as variaveis globais
+  80           	;
+  81           		.data
+  82           	var:
+  83 003E 00   		.space	1
+  84           	
+  85           	; Seccao:    stack
+  86           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
+  87           	;
+  88           		.stack
+  89 0040 00   		.space	STACK_SIZE
+  89 .... ..
+  89 007F 00
+  90           	stack_top:
+  90           	
