@@ -90,7 +90,7 @@ out_port_addr:
     .word OUTPUTPORT_ADDR
 
 out_port_img_addr:
-    .byte outport_imgOUTPUTPORT_ADDR
+    .byte outport_img
 
 
     .data

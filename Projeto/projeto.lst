@@ -1,140 +1,493 @@
-P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Projeto\projeto.lst	Fri May 15 22:40:47 2026
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Projeto\projeto.lst	Tue May 19 17:47:05 2026
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      004C 76
-1       .data           004C      0001 1
-2       .stack          004E      0040 64
+0       .text           0000      0114 276
+1       .data           0114      0004 4
+2       .stack          0118      0040 64
 
 Symbols
 Name                    Type      Value       Section
+convert_before_while    LABEL     00A8 168    .text
+convert_end             LABEL     00B4 180    .text
+convert_moleinput_moleoutput LABEL     00A6 166    .text
+convert_while           LABEL     00AA 170    .text
+detect_play             LABEL     0072 114    .text
+detect_play_return      LABEL     0086 134    .text
+detect_play_return0     LABEL     0084 132    .text
+detect_play_return1     LABEL     0082 130    .text
+diff_addr               LABEL     0070 112    .text
+dificulty_time          LABEL     0115 277    .data
 ENABLE_EXTINT           ABSOLUTE  0010 16     .text
-FED_ADDRESS             ABSOLUTE  FF00 65280  .text
-isr                     LABEL     002A 42     .text
+game_start_signal       LABEL     0058 88     .text
+inport_read             LABEL     00EE 238    .text
+input_port_addr         LABEL     00F4 244    .text
+INPUTPORT_ADDR          ABSOLUTE  FFB0 65456  .text
+INT_CS_ADDRESS          ABSOLUTE  FF00 65280  .text
+isr                     LABEL     0022 34     .text
+last_play               LABEL     0117 279    .data
+last_play_addr          LABEL     0088 136    .text
 main                    LABEL     000A 10     .text
-main_loop               LABEL     0020 32     .text
+main_loop               LABEL     001A 26     .text
+mole_green              LABEL     00A0 160    .text
+mole_red                LABEL     009C 156    .text
+mole_yellow             LABEL     0098 152    .text
+out_port_addr           LABEL     00F6 246    .text
+out_port_img_addr       LABEL     00F8 248    .text
 OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .text
-outport_write           LABEL     0044 68     .text
+outport_clr_bits        LABEL     00D4 212    .text
+outport_img             LABEL     0116 278    .data
+outport_set_bits        LABEL     00C8 200    .text
+outport_write           LABEL     00E2 226    .text
+period                  LABEL     010C 268    .text
+period_addr             LABEL     006E 110    .text
 program                 LABEL     0004 4      .text
+read_and_save_game_dificulty LABEL     005E 94     .text
+show_mole               LABEL     008A 138    .text
+show_mole_end           LABEL     00A4 164    .text
+show_mole_green         LABEL     00BA 186    .text
+show_mole_red           LABEL     00B6 182    .text
+show_mole_yellow        LABEL     00C0 192    .text
+sleep                   LABEL     00FA 250    .text
+sleep_end               LABEL     010A 266    .text
+sleep_inner_loop        LABEL     0102 258    .text
+sleep_outer_loop        LABEL     00FE 254    .text
 STACK_SIZE              ABSOLUTE  0040 64     .text
-stack_top               LABEL     008E 142    .stack
+stack_top               LABEL     0158 344    .stack
 stack_top_addr          LABEL     0008 8      .text
-var                     LABEL     004C 76     .data
-var_addr_isr            LABEL     0042 66     .text
-var_addr_main           LABEL     0028 40     .text
+start_up                LABEL     003A 58     .text
+TC_ADDRESS              ABSOLUTE  FF04 65284  .text
+TCR_ADDRESS             ABSOLUTE  FF00 65280  .text
+TIR_ADDRESS             ABSOLUTE  FF06 65286  .text
+TMR_ADDRESS             ABSOLUTE  FF02 65282  .text
+var                     LABEL     0114 276    .data
+var_addr_isr            LABEL     0056 86     .text
+var_addr_main           LABEL     0054 84     .text
 VAR_INIT_VAL            ABSOLUTE  0000 0      .text
 
 Code listing
-   1           	; Ficheiro:  lab04_ex2.S
-   2           	; Descricao: Programa para a realizacao da 4a atividade laboratorial de
-   3           	;            Arquitetura de Computadores.
-   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
-   5           	; Data:      09-05-2025
-   6           	
-   7           	; Definicao dos valores dos simbolos utilizados no programa
-   8           	;
-   9          		.equ	STACK_SIZE, 64                ; Dimensao do stack, em bytes
-  10           	
-  11           	; *** Inicio de troco para completar ***
-  12          		.equ	ENABLE_EXTINT, 0x10         ; ??
-  13           	; *** Fim de troco para completar ***
-  14           	
-  15          		.equ	OUTPORT_ADDRESS, 0xFFC0       ; Endereco do porto de saida
+   1           	; 	TODO
+   2           	; 	1. Aguardar que o jogo comece cumprindo os requisitos expressos no enunciado;
+   3           	;	2. O jogo é constituído por uma única ronda, onde é afixada a toupeira numa posição fixa (sempre no mesmo buraco);
+   4           	;	3. A ronda termina quando o jogador conseguir "bater" na toupeira;
+   5           	;	4. O jogo termina, nesta fase, sempre com sucesso, e deve cumprir os requisitos expressos no enunciado;
+   6           	;	5. O jogo volta ao estado inicial.
+   7           	; 
+   8           	
+   9           	
+  10           	; Definicao dos valores dos simbolos utilizados no programa
+  11           	;
+  12          		.equ	STACK_SIZE, 64              ; Dimensao do stack, em bytes
+  13          		.equ	ENABLE_EXTINT, 0x10         ; Ativa a flag I do CPSR (ativa as interrupcoes)
+  14          		.equ	OUTPORT_ADDRESS, 0xFFC0     ; Endereco do porto de saida
+  15          		.equ 	INPUTPORT_ADDR, 0xFFB0		; Endereco do porto de entrada
   16           	
-  17           	; *** Inicio de troco para completar ***
-  18          		.equ	FED_ADDRESS, 0xFF00           ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
-  19           	; *** Fim de troco para completar ***
-  20           	
-  21          		.equ	VAR_INIT_VAL, 0               ; Valor inicial de var
-  22           	
-  23           	; Seccao:    text
-  24           	; Descricao: Guarda o codigo do programa
-  25           	;
-  26           		.text
-  27 0000 01 58		b	program
-  28 0002 13 58		b	isr
-  29           	program:
-  30 0004 1D 0C		ldr	sp, stack_top_addr
-  31 0006 01 58	    b   main
-  32           	
-  33           	stack_top_addr:
-  34 0008 8E 00		.word	stack_top
-  35           	
-  36           	; Rotina:    main
-  37           	; Descricao: *** Para completar ***
-  38           	; Entradas:  *** Para completar ***
-  39           	; Saidas:    *** Para completar ***
-  40           	; Efeitos:   *** Para completar ***
-  41           	main:
-  42 000A 00 60		mov	r0, #VAR_INIT_VAL
-  43 000C D1 0C		ldr	r1, var_addr_main
-  44 000E 10 28		strb	r0, [r1, #0]     ; Mete var = 0
-  45           	
-  46 0010 19 5C		bl	outport_write		 ; Escreve o zero no output port
-  47 0012 00 60		mov	r0, #FED_ADDRESS & 0xFF
-  48 0014 F0 7F		movt	r0, #(FED_ADDRESS >> 8) & 0xFF
-  49 0016 00 28		strb	r0, [r0, #0]
-  50           	
-  51 0018 60 B0		mrs	r0, cpsr
-  52 001A 01 61		mov	r1, #ENABLE_EXTINT
-  53 001C 80 C8		orr	r0, r0, r1
-  54 001E 40 B0		msr	cpsr, r0
-  55           	main_loop:
-  56 0020 30 0C		ldr	r0, var_addr_main
-  57 0022 00 08		ldrb	r0, [r0, #0]
-  58 0024 0F 5C		bl	outport_write
-  59 0026 FC 5B		b	main_loop
-  60           	
-  61           	var_addr_main:
-  62 0028 4C 00		.word	var
+  17          		.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
+  18          	    .equ	TCR_ADDRESS, 0xFF00         ; Endereço de memória para ativar o [TCR Register] do pTC
+  19          		.equ	TMR_ADDRESS, 0xFF02         ; Endereço de memória para ativar o [TMR Register] do pTC
+  20          		.equ	TC_ADDRESS, 0xFF04          ; Endereço de memória para ativar o [TC Register] do pTC
+  21          		.equ	TIR_ADDRESS, 0xFF06			; Endereço de memória para ativar o [TIR Register] do pTC
+  22          		.equ	VAR_INIT_VAL, 0             ; Valor inicial de var
+  23           	
+  24           	
+  25           	; Seccao:    text
+  26           	; Descricao: Guarda o codigo do programa
+  27           	;
+  28           		.text
+  29 0000 01 58		b	program
+  30 0002 0F 58		b	isr
+  31           	program:
+  32 0004 1D 0C		ldr	sp, stack_top_addr
+  33 0006 01 58	    b   main
+  34           	
+  35           	stack_top_addr:
+  36 0008 58 01		.word	stack_top
+  37           	
+  38           	; Rotina:    main
+  39           	; Descricao: *** Para completar ***
+  40           	; Entradas:  *** Para completar ***
+  41           	; Saidas:    *** Para completar ***
+  42           	; Efeitos:   *** Para completar ***
+  43           	main:
+  44 000A 17 5C		BL start_up ; PROCESSO DE INICIALIZAÇÃO DO JOGO
+  45           		
+  46 000C 25 5C		BL game_start_signal ; Aiva os LEDs a laranja
+  47           	
+  48 000E 27 5C		BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+  49           	
+  50 0010 40 60		MOV R0, #4
+  51 0012 49 5C		BL convert_moleinput_moleoutput
+  52 0014 11 60		MOV R1, #1
+  53 0016 12 60		MOV R2, #1
+  54 0018 38 5C		BL show_mole
+  55           	
+  56           	
+  57           	main_loop:
+  58 001A C0 0D		ldr	r0, var_addr_main
+  59 001C 00 08		ldrb	r0, [r0, #0]
+  60 001E 61 5C		bl	outport_write
+  61 0020 FC 5B		b	main_loop
+  62           	
   63           	
-  64           	; Rotina:    isr
-  65           	; Descricao: *** Para completar ***
-  66           	; Entradas:  *** Para completar ***
-  67           	; Saidas:    *** Para completar ***
-  68           	; Efeitos:   *** Para completar ***
-  69           	isr:
-  70 002A 01 24		push	r1
-  71 002C 00 24		push	r0
-  72 002E 00 60		mov	r0, #FED_ADDRESS & 0xFF
-  73 0030 F0 7F		movt	r0, #(FED_ADDRESS >> 8) & 0xFF
-  74 0032 02 28		strb	r2, [r0, #0]
-  75 0034 60 0C		ldr	r0, var_addr_isr
-  76 0036 01 08		ldrb	r1, [r0, #0]
-  77 0038 91 A0		add	r1, r1, #1
-  78 003A 01 28		strb	r1, [r0, #0]
-  79 003C 00 04		pop	r0
-  80 003E 01 04		pop	r1
-  81 0040 20 B0		movs	pc, lr
+  64           	
+  65           	
+  66           	; Rotina:    isr
+  67           	; Descricao: Rotina de interrupção
+  68           	isr:
+  69 0022 01 24		push	r1
+  70 0024 00 24		push	r0
+  71 0026 00 60		mov	r0, #INT_CS_ADDRESS & 0xFF
+  72 0028 F0 7F		movt	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
+  73 002A 02 28		strb	r2, [r0, #0]
+  74 002C 40 0D		ldr	r0, var_addr_isr
+  75 002E 01 08		ldrb	r1, [r0, #0]
+  76 0030 91 A0		add	r1, r1, #1
+  77 0032 01 28		strb	r1, [r0, #0]
+  78 0034 00 04		pop	r0
+  79 0036 01 04		pop	r1
+  80 0038 20 B0		movs	pc, lr
+  81           	
   82           	
-  83           	var_addr_isr:
-  84 0042 4C 00		.word	var
-  85           	
-  86           	; Rotina:    outport_write
-  87           	; Descricao: Escreve num porto de saida a 8 bits o valor passado como argumento.
-  88           	;            Interface exemplo: void outport_write( uint8_t value );
-  89           	; Entradas:  r0 - valor a escrever no porto de saida
-  90           	; Saidas:    -
-  91           	; Efeitos:   r1 - guarda o endereco do porto alvo da escrita
-  92           	outport_write:
-  93 0044 01 6C		mov	r1, #OUTPORT_ADDRESS & 0xFF
-  94 0046 F1 7F		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
-  95 0048 10 28		strb	r0, [r1, #0]
-  96 004A 0F B7		mov	pc, lr
-  97           	
-  98           	; Seccao:    data
-  99           	; Descricao: Guarda as variaveis globais
- 100           	;
- 101           		.data
- 102           	var:
- 103 004C 00   		.space	1
- 104           	
- 105           	; Seccao:    stack
- 106           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
- 107           	;
- 108           		.stack
- 109 004E 00   		.space	STACK_SIZE
- 109 .... ..
- 109 008D 00
- 110           	stack_top:
- 110           	
+  83           	; START_UP
+  84           	; Rotina que inicializa o programa.
+  85           	start_up:
+  86 003A 0E 24		PUSH LR
+  87           	
+  88 003C 00 60		mov	r0, #VAR_INIT_VAL
+  89 003E A1 0C		ldr	r1, var_addr_main
+  90 0040 10 28		strb	r0, [r1, #0]     ; Mete var = 0
+  91           	
+  92 0042 4F 5C		bl	outport_write		 ; Escreve o zero no output port
+  93 0044 00 60		mov	r0, #INT_CS_ADDRESS & 0xFF				; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS
+  94 0046 F0 7F		movt	r0, #(INT_CS_ADDRESS >> 8) & 0xFF	; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS		
+  95 0048 00 28		strb	r0, [r0, #0]						; Faz um STOREB para ativar o sinal nWrL
+  96           	
+  97 004A 60 B0		mrs	r0, cpsr								; Passa as flags para o R0
+  98 004C 01 61		mov	r1, #ENABLE_EXTINT						; Passa para R1 a mascara que ativa a flag I
+  99 004E 80 C8		orr	r0, r0, r1								; Realiza um OR bit a bit entre R0 e R1
+ 100 0050 40 B0		msr	cpsr, r0								; Passa as novas flags atualizadas para o registo CPSR
+ 101           	
+ 102 0052 0F 04		POP PC
+ 103           	
+ 104 0054 14 01	var_addr_main:		.word var
+ 105 0056 14 01	var_addr_isr:		.word var
+ 106           	
+ 107           	
+ 108           	;
+ 109           	; >> Função SHOW_MOLE << Coloca todos os leds a laranja
+ 110           	; Tipo: - FOLHA -
+ 111           	; Parametros de entrada:
+ 112           	;	-
+ 113           	; variaveis locais:
+ 114           	;	-
+ 115           	; Parametros de saida:
+ 116           	;   - 
+ 117           	;
+ 118           	game_start_signal: 
+ 119 0058 F0 6F		MOV R0, #0xFF ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
+ 120           	
+ 121 005A 36 5C		BL outport_set_bits
+ 122           	
+ 123 005C 0F B7		MOV PC, LR
+ 124           	; END
+ 125           	
+ 126           	
+ 127           	;
+ 128           	; >> Função READ_GAME_DIFICULTY <<
+ 129           	; Tipo: - FOLHA -
+ 130           	; Parametros de entrada:
+ 131           	;	-
+ 132           	; variaveis locais:
+ 133           	;	-
+ 134           	; Parametros de saida:
+ 135           	;   R0 -> 
+ 136           	;
+ 137           	read_and_save_game_dificulty: 
+ 138           	
+ 139 005E 47 5C		BL inport_read
+ 140           	
+ 141           		; Só precisamos dos 3 bits mais significativos
+ 142 0060 32 60		MOV R2, #0x03
+ 143 0062 00 C1		AND R0, R0, R2
+ 144           		
+ 145           		;LSR R0, R0, #5
+ 146           	
+ 147 0064 41 0C		LDR r1, period_addr	; Carrega o endereço do array
+ 148 0066 10 18		LDRB r0, [R1, R0]	; Carrega do array a posição R0
+ 149           	
+ 150 0068 31 0C		LDR r1, diff_addr	; Carrega o endereço da variavel
+ 151 006A 10 28		STRB r0, [R1]		; Guarda o valor obtido do array na variável
+ 152           	
+ 153           	
+ 154 006C 0F B7		MOV PC, LR
+ 155           	; END
+ 156           	
+ 157 006E 0C 01	period_addr:  		.word period
+ 158 0070 15 01	diff_addr:   		.word dificulty_time
+ 159           	
+ 160           	;
+ 161           	; >> Função DETECT_PLAY <<
+ 162           	; Tipo: - FOLHA -
+ 163           	; Parametros de entrada:
+ 164           	;	-
+ 165           	; variaveis locais:
+ 166           	;	-
+ 167           	; Parametros de saida:
+ 168           	;   R0 -> Boolean
+ 169           	;
+ 170           	detect_play:
+ 171 0072 0E 24		PUSH LR
+ 172           	
+ 173 0074 3C 5C		BL inport_read			; Só precisamos dos 4 bits menos significativos
+ 174 0076 F1 60		MOV R1, #0xF
+ 175 0078 80 C0		AND R0, R0, R1
+ 176           	
+ 177 007A 61 0C		LDR R1, last_play_addr
+ 178 007C 11 08		LDRB R1, [R1]
+ 179           	
+ 180 007E 10 B8		CMP R1, R0 				; Se o novo valor no inport for igual ao valor antigo em memória
+ 181           	
+ 182 0080 02 40		BEQ detect_play_return	; SE forem iguais, significa que nao ha alterações, sai da função com 0
+ 183           	
+ 184           	detect_play_return1:
+ 185 0082 10 60		MOV R0, #1
+ 186           	
+ 187           	detect_play_return0:
+ 188 0084 00 60		MOV R0, #0
+ 189           	
+ 190           	detect_play_return:
+ 191           	
+ 192 0086 0F 04		POP PC
+ 193           	
+ 194 0088 17 01	last_play_addr:		.word last_play
+ 195           	
+ 196           	;
+ 197           	; >> Função SHOW_MOLE << Mostra nos LEDs do output port o estado de uma toupeira 
+ 198           	; Tipo: - NÃO FOLHA -
+ 199           	; Parametros de entrada:
+ 200           	;   uint8_t v -------> r0 - ; R0 -> Nº da toupeira [8bits]
+ 201           	;   uint8_t k -------> r1 - Estado da toupeira, #0 -> R, #1 -> G
+ 202           	;   uint8_t p -------> r2 - Estado da toupeira, #0 -> LR | G, #1 -> Yellow
+ 203           	;
+ 204           	; variaveis locais:
+ 205           	;   uint8_t i --> r3
+ 206           	;
+ 207           	; Parametros de saida:
+ 208           	;   uint8_t ---------> r0
+ 209           	;
+ 210           	show_mole:
+ 211 008A 0E 24		PUSH LR
+ 212           	
+ 213 008C 13 60		MOV R3, #1
+ 214 008E A0 B9		CMP R2, R3
+ 215           	
+ 216 0090 03 40		BEQ mole_yellow		; SE o R1 for 1, é YELLOW 
+ 217           	
+ 218 0092 90 B9		CMP R1, R3			; 
+ 219           		
+ 220 0094 03 44		BNE mole_red		; SE o R0 for 0, é RED
+ 221 0096 04 5C		BL mole_green		; SE o R0 for 1, é GREEN
+ 222           	
+ 223           	mole_yellow:
+ 224 0098 13 5C		BL show_mole_yellow
+ 225 009A 04 58		B show_mole_end
+ 226           		
+ 227           	mole_red:
+ 228 009C 0C 5C		BL show_mole_red
+ 229 009E 02 58		B show_mole_end
+ 230           	
+ 231           	mole_green:
+ 232 00A0 0C 5C		BL show_mole_green
+ 233 00A2 00 58		B show_mole_end
+ 234           	show_mole_end:
+ 235 00A4 0F 04		POP PC
+ 236           	
+ 237           	
+ 238           	
+ 239           	;
+ 240           	; >> Função CONVERT_MOLEINPUT_MOLEOUTPUT <<
+ 241           	; Tipo: - FOLHA -
+ 242           	; Parametros de entrada:
+ 243           	;   uint4_t v -------> r0
+ 244           	;
+ 245           	; variaveis locais:
+ 246           	;   uint8_t prod_c --> r1
+ 247           	;   uint8_t contador  --> r2
+ 248           	;
+ 249           	; Parametros de saida:
+ 250           	;   uint8_t ---------> r0
+ 251           	;
+ 252           	convert_moleinput_moleoutput:
+ 253 00A6 01 B0		MOV R1, R0
+ 254           	
+ 255           	convert_before_while:
+ 256 00A8 02 60	    MOV r2, #0 ; 1
+ 257           	convert_while:
+ 258 00AA A0 B8	    CMP	r2, r1              ; n >= 1
+ 259 00AC 03 48	    BHS	convert_end 
+ 260           	    
+ 261 00AE 80 E0	    LSL r0, r0, #1          
+ 262 00B0 91 A8	    SUB	r1, r1, #1          ; m => contador; m--
+ 263 00B2 FB 5B	    B	convert_while
+ 264           	
+ 265           	convert_end:
+ 266           	
+ 267 00B4 0F B7		MOV PC, LR
+ 268           	
+ 269           	
+ 270           	; SHOW_MOLE_RED
+ 271           	; Mostra num LED vermelho do output port o estado de uma toupeira 
+ 272           	; R0 -> Nº da toupeira [4bits]
+ 273           	show_mole_red:
+ 274 00B6 08 5C		BL outport_set_bits
+ 275           	
+ 276 00B8 0F B7		MOV PC, LR
+ 277           	
+ 278           	
+ 279           	; SHOW_MOLE_RED
+ 280           	; Mostra num LED Verde do output port o estado de uma toupeira 
+ 281           	; R0 -> Nº da toupeira [4bits]
+ 282           	show_mole_green:
+ 283 00BA 80 E0		LSL r0, r0, #1		; Faz o shift para a esquerda da posição inicial da toupeira para que acerte no input do LED verde
+ 284           	
+ 285 00BC 05 5C		BL outport_set_bits
+ 286           	
+ 287 00BE 0F B7		MOV PC, LR
+ 288           	
+ 289           	
+ 290           	; SHOW_MOLE_YELLOW
+ 291           	; Mostra num LED amarelo do output port o estado de uma toupeira 
+ 292           	; R0 -> Nº da toupeira [4bits]
+ 293           	show_mole_yellow:
+ 294 00C0 81 E0		LSL r1, r0, #1		; Faz o shift para a esquerda da posição inicial da toupeira para que acerte no input do LED verde
+ 295 00C2 80 C8		ORR r0, r0, r1
+ 296           	
+ 297 00C4 01 5C		BL outport_set_bits
+ 298           	
+ 299 00C6 0F B7		MOV PC, LR
+ 300           	
+ 301           	
+ 302           	; OUTPORT_SET_BITS
+ 303           	; Introduz os BITS ao valor já no outputport através de uma mascara
+ 304           	; R0 -> é a mascara que será aplicada ao valor já existente no output-port
+ 305           	;
+ 306           	outport_set_bits:
+ 307 00C8 0E 24	    PUSH LR
+ 308           	    
+ 309 00CA 61 0D	    LDR r1, out_port_img_addr
+ 310 00CC 11 08	    LDRB r1, [r1]
+ 311           	
+ 312 00CE 80 C8	    ORR r0, r0, r1
+ 313           	
+ 314 00D0 08 5C	    BL outport_write
+ 315           	    
+ 316 00D2 0F 04	    POP PC
+ 317           	
+ 318           	; OUTPORT_CLR_BITS
+ 319           	; Limpa os BITS do valor já no outputport através de uma mascara
+ 320           	; R0 -> é a mascara que será aplicada ao valor já existente no output-port
+ 321           	;
+ 322           	outport_clr_bits:
+ 323 00D4 0E 24	    PUSH LR
+ 324           	    
+ 325 00D6 01 0D	    LDR r1, out_port_img_addr
+ 326 00D8 11 08	    LDRB r1, [r1]
+ 327           	
+ 328 00DA 10 B0	    MVN r0, r0
+ 329 00DC 80 C0	    AND r0, r0, r1
+ 330           	
+ 331 00DE 01 5C	    BL outport_write
+ 332           	    
+ 333 00E0 0F 04	    POP PC
+ 334           	
+ 335           	
+ 336           	; Rotina:    outport_write
+ 337           	; Descricao: Escreve num porto de saida a 8 bits o valor passado como argumento.
+ 338           	;            Interface exemplo: void outport_write( uint8_t value );
+ 339           	; Entradas:  r0 - valor a escrever no porto de saida
+ 340           	; Saidas:    -
+ 341           	; Efeitos:   r1 - guarda o endereco do porto alvo da escrita
+ 342           	outport_write:
+ 343 00E2 01 6C		mov	 r1, #OUTPORT_ADDRESS & 0xFF
+ 344 00E4 F1 7F		movt r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+ 345 00E6 10 28		strb r0, [r1, #0]
+ 346           	
+ 347           		; É necessário guardar o ultimo valor escrito no output port para conseguirmos modificar o ultimo valor com
+ 348           		; uma mascara
+ 349           	
+ 350 00E8 71 0C	    ldr r1, out_port_img_addr    
+ 351 00EA 10 28	    strb r0, [r1, #0]
+ 352           	
+ 353 00EC 0F B7		mov	pc, lr
+ 354           	
+ 355           	; Rotina:    INPORT_READ
+ 356           	; Descricao: lê do porto de saida os 8 bits.
+ 357           	;            Interface exemplo: uint8_t outport_write();
+ 358           	; Entradas:   - 
+ 359           	; Saidas:    r0 - valor lido do porto de entrada
+ 360           	
+ 361           	inport_read:
+ 362 00EE 20 0C	    ldr r0, input_port_addr
+ 363 00F0 00 08	    ldrb r0, [r0]
+ 364 00F2 0F B7	    mov pc, lr
+ 365           	
+ 366 00F4 B0 FF	input_port_addr:	.word INPUTPORT_ADDR
+ 367           	
+ 368 00F6 C0 FF	out_port_addr:		.word OUTPORT_ADDRESS
+ 369           	
+ 370 00F8 16 01	out_port_img_addr:  .word outport_img
+ 371           	
+ 372           	
+ 373           	; Rotina:    sleep
+ 374           	; Descricao: Faz um atraso de tempo de #1 em r0 e r1
+ 375           	; Entradas:  Recebe r0
+ 376           	; Saidas:    Não têm
+ 377           	; Efeitos:   Altera os registos R0 e R1
+ 378           	sleep:
+ 379 00FA 00 C0		and	r0, r0, r0
+ 380 00FC 06 40		beq	sleep_end
+ 381           	sleep_outer_loop:
+ 382 00FE E1 63		mov	r1, #0x3E
+ 383 0100 31 70		movt	r1, #0x03
+ 384           	sleep_inner_loop:
+ 385 0102 91 A8		sub	r1, r1, #1
+ 386 0104 FE 47		bne	sleep_inner_loop
+ 387 0106 80 A8		sub	r0, r0, #1
+ 388 0108 FA 47		bne	sleep_outer_loop
+ 389           	sleep_end:
+ 390 010A 0F B7		mov	pc, lr
+ 391           	
+ 392           	
+ 393           	
+ 394           	
+ 395           	
+ 396           	period:
+ 397 010C 05		.byte 0x05 ; 1s
+ 398 010D 0A	    .byte 0x0A ; 2s
+ 399 010E 0F	    .byte 0x0F ; 3s
+ 400 010F 14	    .byte 0x14 ; 4s
+ 401 0110 19	    .byte 0x19 ; 5s
+ 402 0111 1E	    .byte 0x1E ; 6s
+ 403 0112 23	    .byte 0x23 ; 7s
+ 404 0113 28	    .byte 0x28 ; 8s
+ 405           	
+ 406           	
+ 407           	
+ 408           	; Seccao:    data
+ 409           	; Descricao: Guarda as variaveis globais
+ 410           	;
+ 411           		.data
+ 412 0114 00   	var:			.space	1
+ 413 0115 00   	dificulty_time:	.space	1
+ 414 0116 00   	outport_img: 	.space	1
+ 415 0117 00   	last_play:   	.space	1
+ 416           	
+ 417           	; Seccao:    stack
+ 418           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
+ 419           	;
+ 420           		.stack
+ 421 0118 00   		.space	STACK_SIZE
+ 421 .... ..
+ 421 0157 00
+ 422           	stack_top:
+ 422           	
