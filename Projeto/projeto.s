@@ -21,7 +21,8 @@
 	.equ	TIR_ADDRESS, 0xFF06			; Endereço de memória para ativar o [TIR Register] do pTC
 	.equ	VAR_INIT_VAL, 0             ; Valor inicial de var
 
-
+	.equ 	SWT_BLINK_MODE_MSK, 0x80	; Máscara para o controlo de entrada do modo de piscar: Pisca ON / pisca OFF (O7)
+	.equ	SWT_BLINK_MODE_POS, 7		; Posição do bit do modo de piscar
 ; Seccao:    text
 ; Descricao: Guarda o codigo do programa
 ;
@@ -36,19 +37,12 @@ stack_top_addr:
 	.word	stack_top
 
 ; Rotina:    main
-; Descricao: *** Para completar ***
-; Entradas:  *** Para completar ***
-; Saidas:    *** Para completar ***
-; Efeitos:   *** Para completar ***
 main:
 	BL start_up ; PROCESSO DE INICIALIZAÇÃO DO JOGO
-	
 	BL game_start_signal ; Aiva os LEDs a laranja
-
 	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
 
 	MOV R0, #4
-	BL convert_moleinput_moleoutput
 	MOV R1, #1
 	MOV R2, #1
 	BL show_mole
@@ -85,10 +79,6 @@ isr:
 start_up:
 	PUSH LR
 
-	mov	r0, #VAR_INIT_VAL
-	ldr	r1, var_addr_main
-	strb	r0, [r1, #0]     ; Mete var = 0
-
 	bl	outport_write		 ; Escreve o zero no output port
 	mov	r0, #INT_CS_ADDRESS & 0xFF				; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS
 	movt	r0, #(INT_CS_ADDRESS >> 8) & 0xFF	; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS		
@@ -105,6 +95,30 @@ var_addr_main:		.word var
 var_addr_isr:		.word var
 
 
+
+; Rotina:    falling_edge
+; Descricao: Retorna booleano indicando se detetou uma transição descendente no bit que controla o modo de funcionamento do sistema;
+; Entradas:  r0 - valor lido o porto de entrada
+; Saidas:    r0 - igual a 0 -> não ocorreu transição descendente; diferente de 0 -> ocorreu transição descendente
+; Efeitos:   
+falling_edge:
+	ldr		r1, last_play_addr
+	ldrb	r2, [r1]			; R2 = observação anterior do bit que controla o modo de operação
+	mov 	r3, #SWT_BLINK_MODE_MSK
+	and		r0, r0, r3			; isola o valor atual do bit modo piscar
+	strb	r0, [r1]
+	lsr		r0, r0, #SWT_BLINK_MODE_POS+1
+	bcs		falling_edge_false	; se observação atual igual a OFF (1) retorna false
+	lsr		r0, r2, #SWT_BLINK_MODE_POS+1
+	bcc		falling_edge_false	; se observação anterior igual a ON (0) retorna false
+	mov		r0, #1				; retorna true: observação anterior igual a OFF (1) e observação atual igual a ON (0)
+	mov		pc, lr
+falling_edge_false:
+	mov		r0, #0
+	mov		pc, lr
+
+
+
 ;
 ; >> Função SHOW_MOLE << Coloca todos os leds a laranja
 ; Tipo: - FOLHA -
@@ -116,11 +130,12 @@ var_addr_isr:		.word var
 ;   - 
 ;
 game_start_signal: 
+	PUSH LR
 	MOV R0, #0xFF ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
 
 	BL outport_set_bits
 
-	MOV PC, LR
+	POP PC
 ; END
 
 
@@ -135,7 +150,7 @@ game_start_signal:
 ;   R0 -> 
 ;
 read_and_save_game_dificulty: 
-
+	PUSH LR
 	BL inport_read
 
 	; Só precisamos dos 3 bits mais significativos
@@ -151,7 +166,7 @@ read_and_save_game_dificulty:
 	STRB r0, [R1]		; Guarda o valor obtido do array na variável
 
 
-	MOV PC, LR
+	POP PC
 ; END
 
 period_addr:  		.word period
@@ -191,7 +206,8 @@ detect_play_return:
 
 	POP PC
 
-last_play_addr:		.word last_play
+last_play_addr:
+	.word	last_play
 
 ;
 ; >> Função SHOW_MOLE << Mostra nos LEDs do output port o estado de uma toupeira 
@@ -240,17 +256,17 @@ show_mole_end:
 ; >> Função CONVERT_MOLEINPUT_MOLEOUTPUT <<
 ; Tipo: - FOLHA -
 ; Parametros de entrada:
-;   uint4_t v -------> r0
+;   uint4_t num_ -------> r0
+;   uint4_t index -------> r1
 ;
 ; variaveis locais:
-;   uint8_t prod_c --> r1
 ;   uint8_t contador  --> r2
 ;
 ; Parametros de saida:
 ;   uint8_t ---------> r0
 ;
 convert_moleinput_moleoutput:
-	MOV R1, R0
+	MOV R2, R0
 
 convert_before_while:
     MOV r2, #0 ; 1

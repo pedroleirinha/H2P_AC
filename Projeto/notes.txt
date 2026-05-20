@@ -1,0 +1,65 @@
+1111 1111 0000 0000
+
+1111 1111 0000 0 00 0 - TCR  [FF00]
+1111 1111 0000 0 01 0 - TMR  [FF02]  
+1111 1111 0000 0 10 0 - TC   [FF04]
+1111 1111 0000 0 11 0 - TIR  [FF06]
+
+
+1 2 3 4
+_ _ _ _
+0 1 2 3
+
+R G R G R G R G
+1 1 2 2 3 3 4 4
+_ _ _ _ _ _ _ _
+0 1 2 3 4 5 6 7
+
+
+(Podemos fazer um shift com sinal para acender os dois?) Não.
+
+Podemos fazer um OR entre a mascara inicial (nº da toupeira) com a mascara depois do shift. E obtemos a mascara com os dois bits ligados.
+
+
+MOLE 1  [0001]->[1110]
+R - 0000 0001
+G - 0000 0010
+Y - 0000 0011
+
+MOLE 2  [0010]->[1101]
+R - 0000 0100
+G - 0000 1000
+Y - 0000 1100
+
+MOLE 3  [0100]->[1011]
+R - 0001 0000
+G - 0010 0000
+Y - 0011 0000
+
+MOLE 4  [1000]->[0111]
+R - 0100 0000
+G - 1000 0000
+Y - 1100 0000
+     
+
+1 -> 0000 0001 [0x01]
+2 -> 0000 0100 [0x04]
+3 -> 0001 0000 [0x10]
+4 -> 0100 0000 [0x40]
+
+
+1 -> 0
+2 -> 1
+3 -> 2
+4 -> 3
+
+
+
+
+
+0 1 2 3    4   5 6 7
+
+1 1 0 0    0   0 1 0  ( 010 0 1111)
+
+4 - maul        Diff
+_ _ _ _	       _ _ _
