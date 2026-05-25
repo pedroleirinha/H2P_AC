@@ -6,14 +6,12 @@
 ;	5. O jogo volta ao estado inicial.
 ; 
 
-
 ; Definicao dos valores dos simbolos utilizados no programa
 ;
 	.equ	STACK_SIZE, 64              ; Dimensao do stack, em bytes
 	.equ	ENABLE_EXTINT, 0x10         ; Ativa a flag I do CPSR (ativa as interrupcoes)
 	.equ	OUTPORT_ADDRESS, 0xFFC0     ; Endereco do porto de saida
 	.equ 	INPUTPORT_ADDR, 0xFFB0		; Endereco do porto de entrada
-
 
 	.equ	PTC_ADDRESS, 0xFF00      		; Endereco do circuito pTC
 	.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
@@ -25,7 +23,6 @@
 	.equ	PTC_CMD_STOP, 0		; Comando para parar a contagem no pTC
 
 	.equ	VAR_INIT_VAL, 0             ; Valor inicial de var
-	.equ	FALLING_EDGE_MODE_MSK, 0x07            ; Valor inicial de var
 	
 ; Seccao:    text
 ; Descricao: Guarda o codigo do programa
@@ -65,8 +62,8 @@ game_setup_fun:
 	
 	BL game_start_signal 
 	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
-	;BL start_up						; PROCESSO DE INICIALIZAÇÃO DO JOGO
-	BL falling_edge_all_bits
+	;BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
+	BL detect_play
 
 game_setup_return:
 	POP PC
@@ -80,22 +77,54 @@ game_setup_return:
 ; Efeitos:   -
 game_start_fun:
 	PUSH LR
-	BL read_marreta 				; Lê e retorna os 4 bits de menor peso
-	ldr	 r1, last_play_addr
-	strb r0, [r1]	
-	
-	BL falling_edge_all_bits
+
+	BL detect_play
 
 game_start_return:
 	POP PC
 ;; END Game_Start_Fun
 
 
+; Rotina:    detect play
+; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   
+detect_play:
+	PUSH LR
+	PUSH R4
+	PUSH R5
+	ldr	 r5, last_play_addr
+detect_play_cycle:
+	BL read_marreta 				; Lê e retorna os 4 bits de menor peso R0
+	MOV R4, R0
+	ldrb r2, [r5]					; R2 = observação anterior do bit que controla o modo de operação
+
+	MOV R1, #0x08					; CARREGA a mascara 1000 para o registo R1
+	BL falling_edge_all_bits
+
+	MOV R3, #1
+	CMP R0, R3
+	BZS return_true
+
+	strb r4, [r5]
+	B detect_play_cycle
+
+	MOV R0, #0
+	B detect_return 
+return_true: 
+	MOV R0, #1
+detect_return:
+
+	POP R5
+	POP R4
+	POP PC
 
 ; Rotina:    falling_edge_all_bits
 ; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
 ; Entradas:  r0 - valor lido o porto de entrada
-; 			 r1 - a mascara do bit
+; 			 r1 - Mascara inicial que será shiftada até chegar ao zero (Verifica todos os bits de uma trama)
+; 			 r2 - valor antigo a comparar
 ; Saidas:    r0 - igual a 0 -> não ocorreu transição descendente; diferente de 0 -> ocorreu transição descendente
 ; Efeitos:   
 falling_edge_all_bits:
@@ -103,31 +132,25 @@ falling_edge_all_bits:
 	PUSH R4
 	PUSH R5
 	PUSH R6
-game_start_cycle:
-	MOV R5, #0x0F
-	MOV R4, #0x08					; CARREGA a mascara 1000 para o registo R1
 
-	ldr	 r3, last_play_addr
-	ldrb r2, [r3]				; R2 = observação anterior do bit que controla o modo de operação
-
-game_cycle:
-	BL read_marreta 				; Lê do INPUTPORT e retorna os 4 bits de menor peso
-	;EOR R1, R4, R5					; INVERTE todos os bits da mascara para ter os bits em active high 
-	MOV R1, R4
+	MOV R4, R0
+	MOV R5, R1
+	MOV R6, R2
+	
+check_cycle:
+	MOV R0, R4	; Carrega o valor lido do porto para o R0
+	MOV R1, R5	; Carrega a mascara a utilizar na verificacao do fallingedge no R1	
+	MOV R2, R6	; Carrega a ultima observação lida do porto para o R2
 	BL falling_edge  				; RETORNA TRUE (1) OU FALSE (0)
 	MOV R3, #1	
 	CMP R0, R3
-	BZS game_start_return			; SE RETORNO DO FALLING EDGE É IGUAL A 1 => (R2)
+	BZS return_falling_edge_all			; SE RETORNO DO FALLING EDGE É IGUAL A 1 => (R2)
 
-	LSR R4, R4, #1					; FAZ O SHIFT da mascara [1000] em R1 um bit para a direita
-	BZS update_value
+	LSR R5, R5, #1					; FAZ O SHIFT da mascara [1000] em R1 um bit para a direita
+	BZS return_falling_edge_all
 
-	B game_cycle
+	B check_cycle
 
-update_value:
-	ldr	 r3, last_play_addr
-	strb r6, [r3]
-	B game_start_cycle
 return_falling_edge_all:
 	POP R6
 	POP R5
@@ -169,45 +192,8 @@ falling_edge_return:
 
 	mov		pc, lr
 
-
-;
-; >> Função DETECT_PLAY <<
-; Tipo: - FOLHA -
-; Parametros de entrada:
-;	-
-; variaveis locais:
-;	-
-; Parametros de saida:
-;   R0 -> Boolean
-;
-detect_play:
-	PUSH LR
-
-	BL inport_read			; Só precisamos dos 4 bits menos significativos
-	MOV R1, #0xF
-	AND R0, R0, R1
-
-	LDR R1, last_play_addr
-	LDRB R1, [R1]
-
-	CMP R1, R0 				; Se o novo valor no inport for igual ao valor antigo em memória
-
-	BEQ detect_play_return	; SE forem iguais, significa que nao ha alterações, sai da função com 0
-
-detect_play_return1:
-	MOV R0, #1
-
-detect_play_return0:
-	MOV R0, #0
-
-detect_play_return:
-
-	POP PC
-
 last_play_addr:
 	.word	last_play
-
-
 
 
 var_addr_main:		.word var
@@ -215,7 +201,7 @@ var_addr_main:		.word var
 
 ; START_UP
 ; Rotina que inicializa o programa.
-start_up:
+start_up_interruptions:
 	PUSH LR
 
 	bl	outport_write		 					; Escreve o zero no output port
