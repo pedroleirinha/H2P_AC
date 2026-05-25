@@ -25,12 +25,8 @@
 	.equ	PTC_CMD_STOP, 0		; Comando para parar a contagem no pTC
 
 	.equ	VAR_INIT_VAL, 0             ; Valor inicial de var
-
-	.equ 	FALLING_EDGE_MODE_MSK, 0x07	; Máscara para o controlo de entrada do modo de piscar: Pisca ON / pisca OFF (O7)
-	.equ	SWT_BLINK_MODE_POS, 7		; Posição do bit do modo de piscar
+	.equ	FALLING_EDGE_MODE_MSK, 0x07            ; Valor inicial de var
 	
-	.equ	VOU_JOGO, 0					; Posição do bit do modo de piscar
-	.equ	ESTOU_AQUI, 1				; Posição do bit do modo de piscar
 ; Seccao:    text
 ; Descricao: Guarda o codigo do programa
 ;
@@ -44,89 +40,133 @@ program:
 stack_top_addr:
 	.word	stack_top
 
-; Rotina:    main
-main:
-	
-	BL start_up						; PROCESSO DE INICIALIZAÇÃO DO JOGO
-	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
-
-	MOV R4, #VOU_JOGO 				; GAME STATE -> ESTADO: "VOU A JOGO"
+; Rotina:    MAIN Function
+; Descricao: -
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   -
+main:	
+	BL game_setup_fun
 main_loop:
+	BL game_start_fun
 	
-	MOV R5, #0
-	CMP R4, R5
-	BNE game_toupeiras
+	B main_loop
+;; END MAIN
 
-game_leds:
-	BL game_start_signal 			; Aiva os LEDs a laranja
 
-game_toupeiras:
 
+; Rotina:    Game_Setup_Fun
+; Descricao: -
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   -
+game_setup_fun:
+	PUSH LR
+	
+	BL game_start_signal 
+	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+	;BL start_up						; PROCESSO DE INICIALIZAÇÃO DO JOGO
+	BL falling_edge_all_bits
+
+game_setup_return:
+	POP PC
+;; END Game_Setup_Fun
+
+
+; Rotina:    Game_Start_Fun
+; Descricao: -
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   -
+game_start_fun:
+	PUSH LR
 	BL read_marreta 				; Lê e retorna os 4 bits de menor peso
 	ldr	 r1, last_play_addr
 	strb r0, [r1]	
-	MOV R3, R0
+	
+	BL falling_edge_all_bits
 
-	MOV R1, #0x07
-ciclo:
-	MOV R0, R3						; INPORT
-	BL 	falling_edge  				; RETORNA TRUE (1) OU FALSE (0)
-	MOV R2, #1	
-	CMP R0, R2
-	BZS return_true					; SE RETORNO DO FALLING EDGE É IGUAL A 1 => (R2)
-
-	LSR R1, R1, #1
-	BZS salto
-
-	B ciclo
-
-return_true:
-	MOV R4, #ESTOU_AQUI
-	MOV R0, #2
-	BL outport_write
-
-salto: 
-
-	; R1 -> MASK onde detetou
-	b	main_loop
+game_start_return:
+	POP PC
+;; END Game_Start_Fun
 
 
+
+; Rotina:    falling_edge_all_bits
+; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
+; Entradas:  r0 - valor lido o porto de entrada
+; 			 r1 - a mascara do bit
+; Saidas:    r0 - igual a 0 -> não ocorreu transição descendente; diferente de 0 -> ocorreu transição descendente
+; Efeitos:   
+falling_edge_all_bits:
+	PUSH LR
+	PUSH R4
+	PUSH R5
+	PUSH R6
+game_start_cycle:
+	MOV R5, #0x0F
+	MOV R4, #0x08					; CARREGA a mascara 1000 para o registo R1
+
+	ldr	 r3, last_play_addr
+	ldrb r2, [r3]				; R2 = observação anterior do bit que controla o modo de operação
+
+game_cycle:
+	BL read_marreta 				; Lê do INPUTPORT e retorna os 4 bits de menor peso
+	;EOR R1, R4, R5					; INVERTE todos os bits da mascara para ter os bits em active high 
+	MOV R1, R4
+	BL falling_edge  				; RETORNA TRUE (1) OU FALSE (0)
+	MOV R3, #1	
+	CMP R0, R3
+	BZS game_start_return			; SE RETORNO DO FALLING EDGE É IGUAL A 1 => (R2)
+
+	LSR R4, R4, #1					; FAZ O SHIFT da mascara [1000] em R1 um bit para a direita
+	BZS update_value
+
+	B game_cycle
+
+update_value:
+	ldr	 r3, last_play_addr
+	strb r6, [r3]
+	B game_start_cycle
+return_falling_edge_all:
+	POP R6
+	POP R5
+	POP R4
+	POP PC
+;END falling_edge_all_bits
 
 ; Rotina:    falling_edge
 ; Descricao: Retorna booleano indicando se detetou uma transição descendente no bit que controla o modo de funcionamento do sistema;
 ; Entradas:  r0 - valor lido o porto de entrada
 ; 			 r1 - a mascara do bit
+;			 r2 - valor em memória
 ; Saidas:    r0 - igual a 0 -> não ocorreu transição descendente; diferente de 0 -> ocorreu transição descendente
 ; Efeitos:   
 falling_edge:
+	PUSH R4
+	PUSH R5
 
-	ldr		r2, last_play_addr
-	ldrb	r2, [r2]			; R2 = observação anterior do bit que controla o modo de operação
-	AND 	r5, r0, r1 			; Aplica a mascara no valor de entrada
-
+	AND	r4, r0, r1 			; Aplica a mascara no valor de entrada. VERIFICA SE O VALOR ATUAL DO BIT É 0
 	; O bit atual do valor no inputport tem de ser 0 para detetar uma transição descendente 
 
-	BNE falling_edge_false
+	BNE falling_edge_false	
 
-	AND 	r2, r1, r2 			; Aplica a mascara no valor antigo
+	AND r4, r1, r2 			; Aplica a mascara no valor antigo. VERIFICA SE O VALOR ANTIGO DO BIT É 1
 
 	BZS falling_edge_false
+
 	; TRANSICAO DESCENDENTE
 	mov		r0, #1				; retorna true: observação anterior igual a OFF (1) e observação atual igual a ON (0)
-	mov		pc, lr
-
-	B falling_edge_return
+	B  falling_edge_return
 
 falling_edge_false:
-
-	mov 	r5, #FALLING_EDGE_MODE_MSK
-	and		r0, r0, r5			; isola o valor atual do bit modo piscar
-	strb	r0, [r1]
-
+	mov		r0, #0
 
 falling_edge_return:
+	
+	POP R5
+	POP R4
 
-	mov		r0, #0
 	mov		pc, lr
 
 
@@ -178,7 +218,7 @@ var_addr_main:		.word var
 start_up:
 	PUSH LR
 
-	bl	outport_write		 ; Escreve o zero no output port
+	bl	outport_write		 					; Escreve o zero no output port
 	mov	r0, #INT_CS_ADDRESS & 0xFF				; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS
 	movt	r0, #(INT_CS_ADDRESS >> 8) & 0xFF	; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS		
 	strb	r0, [r0, #0]						; Faz um STOREB para ativar o sinal nWrL

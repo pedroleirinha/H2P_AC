@@ -75,6 +75,8 @@ Pode ser feito um shift sequencial, um a um, sempre que apanhamos um zero saltam
 quando apanhamos o 1, temos de construir a mascara com base na posicao, ate esgotar os bits. 
 (1101) -> o shift = à index , 
 
+
+
 Ter uma função inicial que fazer setup à fase inicial que só termina quando detetar uma fallingedge.
 E depois o main executa a funcao que corre o codigo
 
