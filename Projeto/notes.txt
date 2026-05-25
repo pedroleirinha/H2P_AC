@@ -63,3 +63,24 @@ Y - 1100 0000
 
 4 - maul        Diff
 _ _ _ _	       _ _ _
+
+
+
+ler uma vez do porto e com o mesmo valor avaliar o fallingedge em cada bit?
+
+
+Se exisir no input 1101, 
+temos de chamar o fallingedge com a mask: 1000, 0100, 0001. (como não é facil desconstruir a mascara)
+Pode ser feito um shift sequencial, um a um, sempre que apanhamos um zero saltamos para o proximo
+quando apanhamos o 1, temos de construir a mascara com base na posicao, ate esgotar os bits. 
+(1101) -> o shift = à index , 
+
+Ter uma função inicial que fazer setup à fase inicial que só termina quando detetar uma fallingedge.
+E depois o main executa a funcao que corre o codigo
+
+
+
+ptcInit() 
+    ptcStop
+    ptcResetInterrupt
+    ptcLoadTimer(value)

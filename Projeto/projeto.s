@@ -24,8 +24,8 @@
 	.equ 	FALLING_EDGE_MODE_MSK, 0x07	; Máscara para o controlo de entrada do modo de piscar: Pisca ON / pisca OFF (O7)
 	.equ	SWT_BLINK_MODE_POS, 7		; Posição do bit do modo de piscar
 	
-	.equ	VOU_JOGO, 0		; Posição do bit do modo de piscar
-	.equ	ESTOU_AQUI, 1		; Posição do bit do modo de piscar
+	.equ	VOU_JOGO, 0					; Posição do bit do modo de piscar
+	.equ	ESTOU_AQUI, 1				; Posição do bit do modo de piscar
 ; Seccao:    text
 ; Descricao: Guarda o codigo do programa
 ;
@@ -42,12 +42,10 @@ stack_top_addr:
 ; Rotina:    main
 main:
 	
-	BL start_up ; PROCESSO DE INICIALIZAÇÃO DO JOGO
-	
+	BL start_up						; PROCESSO DE INICIALIZAÇÃO DO JOGO
 	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
 
-
-	MOV R4, #VOU_JOGO ; GAME STATE -> ESTADO: "VOU A JOGO"
+	MOV R4, #VOU_JOGO 				; GAME STATE -> ESTADO: "VOU A JOGO"
 main_loop:
 	
 	MOV R5, #0
@@ -55,24 +53,22 @@ main_loop:
 	BNE game_toupeiras
 
 game_leds:
-	BL game_start_signal ; Aiva os LEDs a laranja
+	BL game_start_signal 			; Aiva os LEDs a laranja
 
 game_toupeiras:
 
-	
-
-	BL read_marreta ; Lê e retorna os 4 bits de menor peso
+	BL read_marreta 				; Lê e retorna os 4 bits de menor peso
 	ldr	 r1, last_play_addr
 	strb r0, [r1]	
 	MOV R3, R0
 
 	MOV R1, #0x07
 ciclo:
-	MOV R0, R3		; INPORT
-	BL 	falling_edge  ; RETORNA TRUE (1) OU FALSE (0)
+	MOV R0, R3						; INPORT
+	BL 	falling_edge  				; RETORNA TRUE (1) OU FALSE (0)
 	MOV R2, #1	
 	CMP R0, R2
-	BZS return_true			; SE RETORNO DO FALLING EDGE É IGUAL A 1 => (R2)
+	BZS return_true					; SE RETORNO DO FALLING EDGE É IGUAL A 1 => (R2)
 
 	LSR R1, R1, #1
 	BZS salto
@@ -83,18 +79,10 @@ return_true:
 	MOV R4, #ESTOU_AQUI
 	MOV R0, #2
 	BL outport_write
-	B main_loop
 
 salto: 
 
 	; R1 -> MASK onde detetou
-
-
-	;MOV R0, #4
-	;MOV R1, #1
-	;MOV R2, #1
-	;BL show_mole
-
 	b	main_loop
 
 
@@ -118,7 +106,7 @@ falling_edge:
 	AND 	r2, r1, r2 			; Aplica a mascara no valor antigo
 
 	BZS falling_edge_false
-; TRANSICAO DESCENDENTE
+	; TRANSICAO DESCENDENTE
 	mov		r0, #1				; retorna true: observação anterior igual a OFF (1) e observação atual igual a ON (0)
 	mov		pc, lr
 
@@ -176,21 +164,8 @@ last_play_addr:
 
 
 
-; Rotina:    isr
-; Descricao: Rotina de interrupção
-isr:
-	push	r1
-	push	r0
-	mov	r0, #INT_CS_ADDRESS & 0xFF
-	movt	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
-	strb	r2, [r0, #0]
-	ldr	r0, var_addr_isr
-	ldrb	r1, [r0, #0]
-	add	r1, r1, #1
-	strb	r1, [r0, #0]
-	pop	r0
-	pop	r1
-	movs	pc, lr
+
+var_addr_main:		.word var
 
 
 ; START_UP
@@ -210,8 +185,7 @@ start_up:
 
 	POP PC
 
-var_addr_main:		.word var
-var_addr_isr:		.word var
+
 
 
 ;
@@ -352,7 +326,65 @@ show_mole_yellow:
 	BL outport_set_bits
 
 	MOV PC, LR
+;; END SHOW MOLE
 
+
+
+;
+; >> Função SHOW_MOLE << Coloca todos os leds a laranja
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   - 
+;
+game_start_signal: 
+	PUSH LR
+	MOV R0, #0xFF ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
+
+	BL outport_set_bits
+
+	POP PC
+; END
+
+
+read_marreta:
+	PUSH LR
+
+	MOV R1, #0x0F
+	BL inport_read
+	AND R0, R0, R1
+
+	POP PC
+
+
+; Rotina:    sleep
+; Descricao: Faz um atraso de tempo de #1 em r0 e r1
+; Entradas:  Recebe r0
+; Saidas:    Não têm
+; Efeitos:   Altera os registos R0 e R1
+sleep:
+	and	r0, r0, r0
+	beq	sleep_end
+sleep_outer_loop:
+	mov	r1, #0x3E
+	movt	r1, #0x03
+sleep_inner_loop:
+	sub	r1, r1, #1
+	bne	sleep_inner_loop
+	sub	r0, r0, #1
+	bne	sleep_outer_loop
+sleep_end:
+	mov	pc, lr
+
+
+
+
+;;						;;
+;; 		PORTS API 		;;
+;; 						;;
 
 ; OUTPORT_SET_BITS
 ; Introduz os BITS ao valor já no outputport através de uma mascara
@@ -419,63 +451,164 @@ inport_read:
     mov pc, lr
 
 input_port_addr:	.word INPUTPORT_ADDR
-
 out_port_addr:		.word OUTPORT_ADDRESS
-
 out_port_img_addr:  .word outport_img
 
 
 
-;
-; >> Função SHOW_MOLE << Coloca todos os leds a laranja
-; Tipo: - FOLHA -
-; Parametros de entrada:
-;	-
-; variaveis locais:
-;	-
-; Parametros de saida:
-;   - 
-;
-game_start_signal: 
-	PUSH LR
-	MOV R0, #0xFF ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
-
-	BL outport_set_bits
-
-	POP PC
-; END
+;;									;;
+;; 			PICO TIMER API 			;;
+;; 									;;
 
 
-read_marreta:
-	PUSH LR
+/************************************************************************************
+ * LIB time
+ ************************************************************************************/
+; Rotina:    time_get_ref
+; Descricao: Obtém o tempo de referência (sysclk atual) para servir de referência à contagem de um tempo (implementar um relógio)
+; Entradas:  void
+; Saidas:    R0 - valor atual do sysclk (16 bits)
+; Efeitos:   *** Para completar ***
+time_get_ref:
+	; Completar
 
-	MOV R1, #0x0F
-	BL inport_read
-	AND R0, R0, R1
+; Rotina:    time_elapsed
+; Descricao: Retorna o número de ticks passados desde o tempo de referência
+; Entradas:  R0 - tempo de referência (quando se iniciou a contagem de tempo)
+; Saidas:    R0 - número de ticks passados desde tempo de referência (now-ref : de notar que o resultado da diferença continua a ser válido se now<ref)
+; Efeitos:   *** Para completar ***
+time_elapsed:
+	; Completar
 
-	POP PC
+/************************************************************************************
+ * HAL sys_clk
+ ************************************************************************************/
+; Rotina:    isr
+; Descricao: Incrementa o valor da variável global sysclk.
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   *** Para completar ***
+isr:
+	push	r1
+	push	r0
+	mov	r0, #INT_CS_ADDRESS & 0xFF
+	movt	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
+	strb	r2, [r0, #0]
+	ldr	r0, var_addr_isr
+	ldrb	r1, [r0, #0]
+	add	r1, r1, #1
+	strb	r1, [r0, #0]
+	pop	r0
+	pop	r1
+	movs	pc, lr
 
+var_addr_isr:		.word var
 
-; Rotina:    sleep
-; Descricao: Faz um atraso de tempo de #1 em r0 e r1
-; Entradas:  Recebe r0
-; Saidas:    Não têm
-; Efeitos:   Altera os registos R0 e R1
-sleep:
-	and	r0, r0, r0
-	beq	sleep_end
-sleep_outer_loop:
-	mov	r1, #0x3E
-	movt	r1, #0x03
-sleep_inner_loop:
-	sub	r1, r1, #1
-	bne	sleep_inner_loop
-	sub	r0, r0, #1
-	bne	sleep_outer_loop
-sleep_end:
-	mov	pc, lr
+; Rotina:    sysclk_init
+; Descricao: Inicia uma nova contagem no periferico pTC com o intervalo de
+;            contagem recebido em R0, em ticks, limpando eventuais pedidos de
+;            interrupção pendentes e iniciando com o valor zero a variavel
+;            global sysclk.
+;            Interface exemplo: void sysclk_init( uint8_t interval );
+; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
+; Saidas:    -
+; Efeitos:   Inicia a contagem no periférico a partir do valor zero, limpando
+;            eventuais pedidos de interrupção pendentes e iniciando com o
+;            valor zero a variavel global sysclk
+sysclk_init:
+	push	lr
+	ldr		r1, SYSCLK_ADDR
+	mov		r2, #0
+	str 	r2, [r1]
+	bl		ptc_init
+	pop		pc
+	
+; Rotina:    sysclk_get_ticks
+; Descricao: Devolve o valor corrente da variável global sysclk.
+;            Interface exemplo: uint16_t sysclk_get_ticks ( );
+; Entradas:  -
+; Saidas:    *** Para completar ***
+; Efeitos:   -
+sysclk_get_ticks:
+	ldr		r0, SYSCLK_ADDR
+	ldr		r0, [r0]
+	mov		pc, lr
 
+SYSCLK_ADDR:
+	.word	sysclk
 
+/************************************************************************************
+ * Gestor de periférico para o Pico Timer/Counter (pTC): HAL pTC
+ ************************************************************************************/
+; Rotina:    ptc_init
+; Descricao: Faz a iniciacao do periférico pTC, habilitando o seu funcionamento
+;            em modo contínuo e com o intervalo de contagem recebido em R0, em
+;            ticks.
+;            Interface exemplo: void ptc_init( uint8_t interval );
+; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
+; Saidas:    -
+; Efeitos:   Inicia a contagem no periferico a partir do valor zero, limpando
+;            o pedido de interrupcao eventualmente pendente.
+ptc_init:
+    push    lr
+	push	r0
+	bl 		ptc_stop
+	pop		r0
+	ldr		r1, PTC_ADDR
+	strb	r0, [r1, #PTC_TMR]
+    bl  	ptc_clr_irq
+	bl 		ptc_start
+	pop pc
+
+; Rotina:    ptc_start
+; Descricao: Habilita a contagem no periferico pTC.
+;            Interface exemplo: void ptc_start( );
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   -
+ptc_start:
+	ldr		r0, PTC_ADDR
+	mov		r1, #PTC_CMD_START
+	strb	r1, [r0, #PTC_TCR]
+	mov		pc, lr
+
+; Rotina:    ptc_stop
+; Descricao: Para a contagem no periferico pTC.
+;            Interface exemplo: void ptc_stop( );
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   O valor do registo TC do periferico e colocado a zero.
+ptc_stop:
+	ldr		r0, PTC_ADDR
+	mov		r1, #PTC_CMD_STOP
+	strb	r1, [r0, #PTC_TCR]
+	mov		pc, lr
+
+; Rotina:    ptc_get_value
+; Descricao: Devolve o valor corrente da contagem do periferico pTC.
+;            Interface exemplo: uint8_t ptc_get_value( );
+; Entradas:  -
+; Saidas:    R0 - O valor corrente do registo TC do periferico.
+; Efeitos:   -
+ptc_get_value:
+	ldr		r1, PTC_ADDR
+	ldrb	r0, [r1, #PTC_TC]
+	mov		pc, lr
+
+; Rotina:    ptc_clr_irq
+; Descricao: Sinaliza o periferico pTC que foi atendido um pedido de
+;            interrupção.
+;            Interface exemplo: void ptc_clr_irq( );
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   -
+ptc_clr_irq:
+	ldr		r0, PTC_ADDR
+	strb	r1, [r0, #PTC_TIR]
+	mov		pc, lr
+
+PTC_ADDR:
+	.word	PTC_ADDRESS
 
 
 
@@ -499,6 +632,7 @@ var:			.space	1
 dificulty_time:	.space	1
 outport_img: 	.space	1
 last_play:   	.space	1
+sysclk:			.space	2
 
 
 
