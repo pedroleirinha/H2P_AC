@@ -14,11 +14,16 @@
 	.equ	OUTPORT_ADDRESS, 0xFFC0     ; Endereco do porto de saida
 	.equ 	INPUTPORT_ADDR, 0xFFB0		; Endereco do porto de entrada
 
+
+	.equ	PTC_ADDRESS, 0xFF00      		; Endereco do circuito pTC
 	.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
-    .equ	TCR_ADDRESS, 0xFF00         ; Endereço de memória para ativar o [TCR Register] do pTC
-	.equ	TMR_ADDRESS, 0xFF02         ; Endereço de memória para ativar o [TMR Register] do pTC
-	.equ	TC_ADDRESS, 0xFF04          ; Endereço de memória para ativar o [TC Register] do pTC
-	.equ	TIR_ADDRESS, 0xFF06			; Endereço de memória para ativar o [TIR Register] do pTC
+    .equ	PTC_TCR_ADDRESS, 0     	; Endereço de memória para ativar o [TCR Register] do pTC [0xFF00]
+	.equ	PTC_TMR_ADDRESS, 1     	; Endereço de memória para ativar o [TMR Register] do pTC [0xFF02]
+	.equ	PTC_TC_ADDRESS, 2     		; Endereço de memória para ativar o [TC Register] do pTC [0xFF04]
+	.equ	PTC_TIR_ADDRESS, 3			; Endereço de memória para ativar o [TIR Register] do pTC [0xFF06]
+	.equ	PTC_CMD_START, 1		; Comando para iniciar a contagem no pTC
+	.equ	PTC_CMD_STOP, 0		; Comando para parar a contagem no pTC
+
 	.equ	VAR_INIT_VAL, 0             ; Valor inicial de var
 
 	.equ 	FALLING_EDGE_MODE_MSK, 0x07	; Máscara para o controlo de entrada do modo de piscar: Pisca ON / pisca OFF (O7)
@@ -555,10 +560,11 @@ ptc_init:
 	bl 		ptc_stop
 	pop		r0
 	ldr		r1, PTC_ADDR
-	strb	r0, [r1, #PTC_TMR]
+	strb	r0, [r1, #PTC_TMR_ADDRESS]
     bl  	ptc_clr_irq
 	bl 		ptc_start
 	pop pc
+
 
 ; Rotina:    ptc_start
 ; Descricao: Habilita a contagem no periferico pTC.
@@ -569,7 +575,7 @@ ptc_init:
 ptc_start:
 	ldr		r0, PTC_ADDR
 	mov		r1, #PTC_CMD_START
-	strb	r1, [r0, #PTC_TCR]
+	strb	r1, [r0, #PTC_TC_ADDRESS]
 	mov		pc, lr
 
 ; Rotina:    ptc_stop
@@ -581,7 +587,7 @@ ptc_start:
 ptc_stop:
 	ldr		r0, PTC_ADDR
 	mov		r1, #PTC_CMD_STOP
-	strb	r1, [r0, #PTC_TCR]
+	strb	r1, [r0, #PTC_TC_ADDRESS]
 	mov		pc, lr
 
 ; Rotina:    ptc_get_value
@@ -592,7 +598,7 @@ ptc_stop:
 ; Efeitos:   -
 ptc_get_value:
 	ldr		r1, PTC_ADDR
-	ldrb	r0, [r1, #PTC_TC]
+	ldrb	r0, [r1, #PTC_TC_ADDRESS]
 	mov		pc, lr
 
 ; Rotina:    ptc_clr_irq
@@ -604,7 +610,7 @@ ptc_get_value:
 ; Efeitos:   -
 ptc_clr_irq:
 	ldr		r0, PTC_ADDR
-	strb	r1, [r0, #PTC_TIR]
+	strb	r1, [r0, #PTC_TIR_ADDRESS]
 	mov		pc, lr
 
 PTC_ADDR:
