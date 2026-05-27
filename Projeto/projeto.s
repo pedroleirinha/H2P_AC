@@ -44,13 +44,43 @@ stack_top_addr:
 ; Efeitos:   -
 main:	
 	BL game_setup_fun
-main_loop:
 	BL game_start_fun
+	BL game_finished
 	
-	B main_loop
+	B main
+	
 ;; END MAIN
 
 
+; Rotina:    Game_Setup_Fun
+; Descricao: -
+; Entradas:  -
+; Saidas:    -
+; Efeitos:   -
+game_finished:
+	PUSH LR
+
+	BL clear_lights
+	MOV R0, #0xFF
+	BL outport_write
+	
+	MOV R0, #2
+	BL sleep
+	
+	MOV R0, #0xFF
+	BL outport_write
+	
+	MOV R0, #2
+	BL sleep
+
+	MOV R0, #0xFF
+	BL outport_write
+	
+	MOV R0, #2
+	BL sleep
+
+	POP PC
+;END GAME_FINISHED
 
 ; Rotina:    Game_Setup_Fun
 ; Descricao: -
@@ -61,8 +91,9 @@ game_setup_fun:
 	PUSH LR
 	
 	BL game_start_signal 
-	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+	;BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
 	;BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
+	
 	BL detect_play
 
 game_setup_return:
@@ -77,8 +108,31 @@ game_setup_return:
 ; Efeitos:   -
 game_start_fun:
 	PUSH LR
+	BL clear_lights
+
+game_loop:
+	MOV R0, #0x02
+	MOV R1, #0
+	MOV R2, #0
+	BL show_mole
+
+	MOV R0, #0x20
+	MOV R1, #0
+	MOV R2, #0
+	BL show_mole
 
 	BL detect_play
+	AND R2, R1, R0
+	
+	BZS game_loop
+	BL clear_lights
+	MOV R0, #1
+	MOV R1, #0
+	MOV R2, #0
+	BL show_mole
+
+	MOV R0, #5
+	BL sleep
 
 game_start_return:
 	POP PC
@@ -105,9 +159,9 @@ detect_play_cycle:
 
 	MOV R3, #1
 	CMP R0, R3
+	strb r4, [r5]					; ATUALIZA VALOR 
 	BZS return_true
 
-	strb r4, [r5]
 	B detect_play_cycle
 
 	MOV R0, #0
@@ -119,6 +173,23 @@ detect_return:
 	POP R5
 	POP R4
 	POP PC
+
+
+
+
+; Entradas:  r0 - valor lido o porto de entrada
+; 			 r1 - Mascara inicial 
+falling_edge_v2:
+	ldr	 r2, last_play_addr
+	ldrb r3, [r2]	; VALOR EM MEMORIA
+
+	strb r0, [r2]	; ATUALIZA EM MEMORIA
+
+	MVN R0, R0, R0
+	AND R0, R0, R1
+
+	MOV PC, LR
+
 
 ; Rotina:    falling_edge_all_bits
 ; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
@@ -236,8 +307,6 @@ read_and_save_game_dificulty:
 	; Só precisamos dos 3 bits mais significativos
 	MOV R2, #0xE0
 	AND R0, R0, R2
-	
-	;LSR R0, R0, #5
 
 	LDR r1, period_addr	; Carrega o endereço do array
 	LDRB r0, [R1, R0]	; Carrega do array a posição R0
@@ -248,6 +317,31 @@ read_and_save_game_dificulty:
 
 	POP PC
 ; END
+
+
+; Rotina:    sleep
+; Descricao: Faz um atraso de tempo de #1 em r0 e r1
+; Entradas:  Recebe r0
+; Saidas:    Não têm
+; Efeitos:   Altera os registos R0 e R1
+sleep:
+
+	LDR r1, period_addr	; Carrega o endereço do array
+	LDRB r0, [R1, R0]	; Carrega do array a posição R0
+
+	and	r0, r0, r0
+	beq	sleep_end
+sleep_outer_loop:
+	mov	r1, #0x3E
+	movt r1, #0x03
+sleep_inner_loop:
+	sub	r1, r1, #1
+	bne	sleep_inner_loop
+	sub	r0, r0, #1
+	bne	sleep_outer_loop
+sleep_end:
+	mov	pc, lr
+
 
 period_addr:  		.word period
 diff_addr:   		.word dificulty_time
@@ -331,38 +425,41 @@ convert_end:
 ; Mostra num LED vermelho do output port o estado de uma toupeira 
 ; R0 -> Nº da toupeira [4bits]
 show_mole_red:
+	PUSH LR
 	BL outport_set_bits
 
-	MOV PC, LR
+	POP PC
 
 
 ; SHOW_MOLE_RED
 ; Mostra num LED Verde do output port o estado de uma toupeira 
 ; R0 -> Nº da toupeira [4bits]
 show_mole_green:
+	PUSH LR
 	LSL r0, r0, #1		; Faz o shift para a esquerda da posição inicial da toupeira para que acerte no input do LED verde
 
 	BL outport_set_bits
 
-	MOV PC, LR
+	POP PC
 
 
 ; SHOW_MOLE_YELLOW
 ; Mostra num LED amarelo do output port o estado de uma toupeira 
 ; R0 -> Nº da toupeira [4bits]
 show_mole_yellow:
+	PUSH LR
 	LSL r1, r0, #1		; Faz o shift para a esquerda da posição inicial da toupeira para que acerte no input do LED verde
 	ORR r0, r0, r1
 
 	BL outport_set_bits
 
-	MOV PC, LR
+	POP PC
 ;; END SHOW MOLE
 
 
 
 ;
-; >> Função SHOW_MOLE << Coloca todos os leds a laranja
+; >> Função GAME START SIGNAL << Coloca todos os leds a laranja
 ; Tipo: - FOLHA -
 ; Parametros de entrada:
 ;	-
@@ -380,6 +477,25 @@ game_start_signal:
 	POP PC
 ; END
 
+;
+; >> Função CLEAR LIGHTS << Desliga todos os leds
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   - 
+;
+clear_lights: 
+	PUSH LR
+	MOV R0, #0xFF ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
+
+	BL outport_clr_bits
+
+	POP PC
+; END
+
 
 read_marreta:
 	PUSH LR
@@ -390,25 +506,6 @@ read_marreta:
 
 	POP PC
 
-
-; Rotina:    sleep
-; Descricao: Faz um atraso de tempo de #1 em r0 e r1
-; Entradas:  Recebe r0
-; Saidas:    Não têm
-; Efeitos:   Altera os registos R0 e R1
-sleep:
-	and	r0, r0, r0
-	beq	sleep_end
-sleep_outer_loop:
-	mov	r1, #0x3E
-	movt	r1, #0x03
-sleep_inner_loop:
-	sub	r1, r1, #1
-	bne	sleep_inner_loop
-	sub	r0, r0, #1
-	bne	sleep_outer_loop
-sleep_end:
-	mov	pc, lr
 
 
 
