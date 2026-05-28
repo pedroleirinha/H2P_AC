@@ -22,8 +22,10 @@
 	.equ	PTC_CMD_START, 1		; Comando para iniciar a contagem no pTC
 	.equ	PTC_CMD_STOP, 0		; Comando para parar a contagem no pTC
 
-	.equ	VAR_INIT_VAL, 0             ; Valor inicial de var
+	.equ	SYSCLK_INIT, 0             ; Valor inicial do sysclk
 	
+
+
 ; Seccao:    text
 ; Descricao: Guarda o codigo do programa
 ;
@@ -42,10 +44,11 @@ stack_top_addr:
 ; Entradas:  -
 ; Saidas:    -
 ; Efeitos:   -
-main:	
-	BL game_setup_fun
+main:
+	
+	;BL game_setup_fun
 	BL game_start_fun
-	BL game_finished
+	;BL game_finished
 	
 	B main
 	
@@ -91,10 +94,17 @@ game_setup_fun:
 	PUSH LR
 	
 	BL game_start_signal 
-	;BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
-	;BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
-	
+	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
+	BL sysclk_init
+detect_cycle:
+	MOV R1, #0x01
 	BL detect_play
+	AND R0, R0, R1
+	
+	BZS detect_cycle
+
+
 
 game_setup_return:
 	POP PC
@@ -108,35 +118,71 @@ game_setup_return:
 ; Efeitos:   -
 game_start_fun:
 	PUSH LR
+	PUSH R4
+	PUSH R5
 	BL clear_lights
+
+	ldr R3, moles_position_addr
+	ldrb R4, [R3]
+	
+	MOV R6, #0
+next_round:
+	MOV R1, R6						;Nº DA RONDA 
+	BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY
+
 
 game_loop:
-	MOV R0, #0x02
-	MOV R1, #0
-	MOV R2, #0
-	BL show_mole
 
-	MOV R0, #0x20
-	MOV R1, #0
-	MOV R2, #0
-	BL show_mole
-
+	MOV R0, R4
+	MOV R1, #0x0F
 	BL detect_play
-	AND R2, R1, R0
+	AND R0, R0, R0
 	
 	BZS game_loop
-	BL clear_lights
-	MOV R0, #1
-	MOV R1, #0
-	MOV R2, #0
-	BL show_mole
+	
+	BL convert_moleinput_moleoutput	; FICA EM R0 o index da marretada detetada
+	MOV R5, R0
 
-	MOV R0, #5
-	BL sleep
+	BL get_mole_green 				; VAI BUSCAR A MASCARA QUE REPRESENTA OS LEDS VERDES NO INDEX DA MARRETA
+	AND R0, R0, R4
+
+	BZS game_loop
+	
+	MOV R0, R5
+	BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERDE
+
+	ADD R6, R6, #1					; INCREMENTA O Nº DA RONDA
+	B next_round
 
 game_start_return:
+	POP R4
+	POP R5
 	POP PC
 ;; END Game_Start_Fun
+
+
+
+; Rotina:    show_moles_state
+; Descricao: 
+; Entradas:  R0 -> INDEX da marretada
+; Entradas:  R1 -> INDEX da ronda
+; Saidas:    -
+; Efeitos:  
+show_moles_state:
+	PUSH LR
+	
+	LDR R2, moles_position_addr
+	LDRB R3, [R2, R1]
+
+	MOV R0, R3
+	BL outport_write
+
+	POP PC
+; END SHOW_MOLES_STATE
+
+
+
+moles_position_addr: .word moles_position
 
 
 ; Rotina:    detect play
@@ -146,34 +192,14 @@ game_start_return:
 ; Efeitos:   
 detect_play:
 	PUSH LR
-	PUSH R4
-	PUSH R5
-	ldr	 r5, last_play_addr
-detect_play_cycle:
+	
 	BL read_marreta 				; Lê e retorna os 4 bits de menor peso R0
-	MOV R4, R0
-	ldrb r2, [r5]					; R2 = observação anterior do bit que controla o modo de operação
+	MOV R1, #0x0F
+	BL falling_edge_v2
 
-	MOV R1, #0x08					; CARREGA a mascara 1000 para o registo R1
-	BL falling_edge_all_bits
-
-	MOV R3, #1
-	CMP R0, R3
-	strb r4, [r5]					; ATUALIZA VALOR 
-	BZS return_true
-
-	B detect_play_cycle
-
-	MOV R0, #0
-	B detect_return 
-return_true: 
-	MOV R0, #1
-detect_return:
-
-	POP R5
-	POP R4
 	POP PC
 
+;END DETECT_PLAY
 
 
 
@@ -185,89 +211,14 @@ falling_edge_v2:
 
 	strb r0, [r2]	; ATUALIZA EM MEMORIA
 
-	MVN R0, R0, R0
-	AND R0, R0, R1
+	MVN R0, R0		; INVERTE OS BITS 
+	AND R0, R0, R3	
 
+	AND R0, R0, R1 ; FILTRA OS 4 BITS menos significativos 
 	MOV PC, LR
-
-
-; Rotina:    falling_edge_all_bits
-; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
-; Entradas:  r0 - valor lido o porto de entrada
-; 			 r1 - Mascara inicial que será shiftada até chegar ao zero (Verifica todos os bits de uma trama)
-; 			 r2 - valor antigo a comparar
-; Saidas:    r0 - igual a 0 -> não ocorreu transição descendente; diferente de 0 -> ocorreu transição descendente
-; Efeitos:   
-falling_edge_all_bits:
-	PUSH LR
-	PUSH R4
-	PUSH R5
-	PUSH R6
-
-	MOV R4, R0
-	MOV R5, R1
-	MOV R6, R2
-	
-check_cycle:
-	MOV R0, R4	; Carrega o valor lido do porto para o R0
-	MOV R1, R5	; Carrega a mascara a utilizar na verificacao do fallingedge no R1	
-	MOV R2, R6	; Carrega a ultima observação lida do porto para o R2
-	BL falling_edge  				; RETORNA TRUE (1) OU FALSE (0)
-	MOV R3, #1	
-	CMP R0, R3
-	BZS return_falling_edge_all			; SE RETORNO DO FALLING EDGE É IGUAL A 1 => (R2)
-
-	LSR R5, R5, #1					; FAZ O SHIFT da mascara [1000] em R1 um bit para a direita
-	BZS return_falling_edge_all
-
-	B check_cycle
-
-return_falling_edge_all:
-	POP R6
-	POP R5
-	POP R4
-	POP PC
-;END falling_edge_all_bits
-
-; Rotina:    falling_edge
-; Descricao: Retorna booleano indicando se detetou uma transição descendente no bit que controla o modo de funcionamento do sistema;
-; Entradas:  r0 - valor lido o porto de entrada
-; 			 r1 - a mascara do bit
-;			 r2 - valor em memória
-; Saidas:    r0 - igual a 0 -> não ocorreu transição descendente; diferente de 0 -> ocorreu transição descendente
-; Efeitos:   
-falling_edge:
-	PUSH R4
-	PUSH R5
-
-	AND	r4, r0, r1 			; Aplica a mascara no valor de entrada. VERIFICA SE O VALOR ATUAL DO BIT É 0
-	; O bit atual do valor no inputport tem de ser 0 para detetar uma transição descendente 
-
-	BNE falling_edge_false	
-
-	AND r4, r1, r2 			; Aplica a mascara no valor antigo. VERIFICA SE O VALOR ANTIGO DO BIT É 1
-
-	BZS falling_edge_false
-
-	; TRANSICAO DESCENDENTE
-	mov		r0, #1				; retorna true: observação anterior igual a OFF (1) e observação atual igual a ON (0)
-	B  falling_edge_return
-
-falling_edge_false:
-	mov		r0, #0
-
-falling_edge_return:
-	
-	POP R5
-	POP R4
-
-	mov		pc, lr
 
 last_play_addr:
 	.word	last_play
-
-
-var_addr_main:		.word var
 
 
 ; START_UP
@@ -365,19 +316,11 @@ show_mole:
 	PUSH LR
 
 	MOV R3, #1
-	CMP R2, R3
-
-	BEQ mole_yellow		; SE o R1 for 1, é YELLOW 
-
 	CMP R1, R3			; 
 	
 	BNE mole_red		; SE o R0 for 0, é RED
 	BL mole_green		; SE o R0 for 1, é GREEN
 
-mole_yellow:
-	BL show_mole_yellow
-	B show_mole_end
-	
 mole_red:
 	BL show_mole_red
 	B show_mole_end
@@ -395,7 +338,6 @@ show_mole_end:
 ; Tipo: - FOLHA -
 ; Parametros de entrada:
 ;   uint4_t num_ -------> r0
-;   uint4_t index -------> r1
 ;
 ; variaveis locais:
 ;   uint8_t contador  --> r2
@@ -404,28 +346,46 @@ show_mole_end:
 ;   uint8_t ---------> r0
 ;
 convert_moleinput_moleoutput:
-	MOV R2, R0
-
-convert_before_while:
-    MOV r2, #0 ; 1
+	MOV R1, #0
 convert_while:
-    CMP	r2, r1              ; n >= 1
-    BHS	convert_end 
-    
-    LSL r0, r0, #1          
-    SUB	r1, r1, #1          ; m => contador; m--
+
+    LSR r0, r0, #1          
+	BZS convert_end
+    ADD r1, r1, #1          ; m => contador; m--
     B	convert_while
 
 convert_end:
+	MOV R0, R1
+	MOV PC, LR
+; END CONVERT
+
+
+; GETMOLE_RED
+; Retorna a posição do LED vermelho do output port com base na posição como parametro.  
+; R0 -> Nº da toupeira [4bits]
+get_mole_red:
+	LDR R1, moles_red_addr
+	LDRB R0, [R1, R0]
 
 	MOV PC, LR
 
+
+; GETMOLE_GREEN
+; Retorna a posição do LED verde do output port com base na posição como parametro.  
+; R0 -> Nº da toupeira [4bits]
+get_mole_green:
+	LDR R1, moles_green_addr
+	LDRB R0, [R1, R0]
+
+	MOV PC, LR
 
 ; SHOW_MOLE_RED
 ; Mostra num LED vermelho do output port o estado de uma toupeira 
 ; R0 -> Nº da toupeira [4bits]
 show_mole_red:
 	PUSH LR
+	
+	BL get_mole_red
 	BL outport_set_bits
 
 	POP PC
@@ -436,27 +396,15 @@ show_mole_red:
 ; R0 -> Nº da toupeira [4bits]
 show_mole_green:
 	PUSH LR
-	LSL r0, r0, #1		; Faz o shift para a esquerda da posição inicial da toupeira para que acerte no input do LED verde
 
+	BL get_mole_green
 	BL outport_set_bits
 
 	POP PC
 
 
-; SHOW_MOLE_YELLOW
-; Mostra num LED amarelo do output port o estado de uma toupeira 
-; R0 -> Nº da toupeira [4bits]
-show_mole_yellow:
-	PUSH LR
-	LSL r1, r0, #1		; Faz o shift para a esquerda da posição inicial da toupeira para que acerte no input do LED verde
-	ORR r0, r0, r1
-
-	BL outport_set_bits
-
-	POP PC
-;; END SHOW MOLE
-
-
+moles_red_addr:  .word moles_red
+moles_green_addr:  .word moles_green
 
 ;
 ; >> Função GAME START SIGNAL << Coloca todos os leds a laranja
@@ -496,7 +444,16 @@ clear_lights:
 	POP PC
 ; END
 
-
+;
+; >> Função READ_MARRETA << Lê os 4bits menos significativos do inputport
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   - 
+;
 read_marreta:
 	PUSH LR
 
@@ -505,6 +462,55 @@ read_marreta:
 	AND R0, R0, R1
 
 	POP PC
+
+;END READ_MARRETA
+
+
+
+; Rotina:    turn_mole_red
+; Descricao: 
+; Entradas:  R0 -> INDEX da toupeira
+; Saidas:    -
+; Efeitos:   
+turn_mole_red:
+	PUSH LR
+	PUSH R4
+
+	MOV R4, R0
+	BL get_mole_green 
+	
+	BL outport_clr_bits			; LIMPA O BIT QUE TORNA O LED VERDE NA TOUPEIRA 
+
+	MOV R0, R4
+	BL get_mole_red 
+
+	BL outport_set_bits			; ATIVA O BIT QUE TORNA O LED VERMELHO NA TOUPEIRA 
+
+	POP R4
+	POP PC
+;END TURN_MOLE_RED
+
+; Rotina:    check_mole_position
+; Descricao: 
+; Entradas:  R0 -> INDEX da marretada
+; Saidas:    -
+; Efeitos:   
+check_mole_position:
+	PUSH LR
+	
+	
+	BL get_mole_green 
+
+	LDR R1, out_port_img_addr
+	LDRB R1, [R1]
+
+	AND R0, R0, R1		; VERIFICA SE OS MESMOS BITS DO OUTPUT PORT E DA GREEN POSISTION DA TOUPEIRA SAO IGUAIS
+
+check_mole_return:
+
+	POP PC
+;END CHECK_MOLE_POSITION
+
 
 
 
@@ -622,7 +628,7 @@ isr:
 	mov	r0, #INT_CS_ADDRESS & 0xFF
 	movt	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
 	strb	r2, [r0, #0]
-	ldr	r0, var_addr_isr
+	ldr	r0, SYSCLK_ADDR
 	ldrb	r1, [r0, #0]
 	add	r1, r1, #1
 	strb	r1, [r0, #0]
@@ -630,7 +636,6 @@ isr:
 	pop	r1
 	movs	pc, lr
 
-var_addr_isr:		.word var
 
 ; Rotina:    sysclk_init
 ; Descricao: Inicia uma nova contagem no periferico pTC com o intervalo de
@@ -741,6 +746,24 @@ PTC_ADDR:
 
 
 
+moles_red:
+	.byte 0x01
+    .byte 0x04
+    .byte 0x10
+    .byte 0x40
+
+moles_green:
+	.byte 0x02
+    .byte 0x08
+    .byte 0x20
+    .byte 0x80
+
+moles_yellow:
+	.byte 0x03
+    .byte 0x0C
+    .byte 0x30
+    .byte 0xC0
+
 period:
 	.byte 0x05 ; 1s
     .byte 0x0A ; 2s
@@ -752,17 +775,23 @@ period:
     .byte 0x28 ; 8s
 
 
-
 ; Seccao:    data
 ; Descricao: Guarda as variaveis globais
 ;
 	.data
-var:			.space	1
 dificulty_time:	.space	1
 outport_img: 	.space	1
 last_play:   	.space	1
 sysclk:			.space	2
 
+moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
+	.byte 0x20 
+	.byte 0x40 
+	.byte 0x02 
+	.byte 0x04 
+	.byte 0x42 
+	.byte 0x44 
+	.byte 0x22 
 
 
 ; Seccao:    stack
@@ -771,3 +800,7 @@ sysclk:			.space	2
 	.stack
 	.space	STACK_SIZE
 stack_top:
+
+
+; SE A FREQ FOR 100kH, dá 0.01ms por cada contagem de clock. Se for até 255, dá no maximo 2,5ms
+; SE A FREQ FOR 1kH, dá 1ms por cada contagem de clock. Se for até 255, dá no maximo 255ms
