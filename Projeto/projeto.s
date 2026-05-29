@@ -160,6 +160,7 @@ game_start_return:
 game_round:
 	PUSH LR
 	PUSH R4
+	PUSH R5
 
 	MOV R4, R0
 
@@ -180,6 +181,7 @@ game_round_loop:
 	
 	BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
 
+	POP R5
 	POP R4
 	POP PC
 
@@ -255,11 +257,14 @@ if_mole_hit_change_color:
 	MOV R5, R0
 
 	BL get_mole_green 				; VAI BUSCAR A MASCARA QUE REPRESENTA OS LEDS VERDES NO INDEX DA MARRETA
-	AND R0, R0, R4
+	AND R0, R0, R4					; VALIDA SE O BIT GREEN OBTIDO CORRESPONDE À POSICAO DA TOUPEIRA
+
+	BZS if_mole_hit_change_color_end
 
 	MOV R0, R5
 	BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERDE
 
+if_mole_hit_change_color_end:
 	POP R4
 	POP PC
 ; end_is_mole_hit
@@ -860,15 +865,15 @@ sysclk:			.space	2
 
 moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
 	.byte 0x20	; RONDA 1  => [ _1__ ]
-	.byte 0x40	; RONDA 2  => [ 1___ ]
+	.byte 0x80	; RONDA 2  => [ 1___ ]
 	.byte 0x02	; RONDA 3  => [ ___1 ]
-	.byte 0x04	; RONDA 4  => [ __1_ ]
+	.byte 0x08	; RONDA 4  => [ __1_ ]
 	.byte 0x20	; RONDA 5  => [ _1__ ]
-	.byte 0x44	; RONDA 6  => [ 1_1_ ]
+	.byte 0x88	; RONDA 6  => [ 1_1_ ]
 	.byte 0x22	; RONDA 7  => [ _1_1 ]
-	.byte 0x24	; RONDA 8  => [ _11_ ]
-	.byte 0x42	; RONDA 9  => [ 1_1_ ]
-	.byte 0x24	; RONDA 10 => [ _11_ ]
+	.byte 0x28	; RONDA 8  => [ _11_ ]
+	.byte 0x82	; RONDA 9  => [ 1_1_ ]
+	.byte 0x28	; RONDA 10 => [ _11_ ]
 
 
 ; Seccao:    stack
