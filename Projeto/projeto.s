@@ -5,16 +5,16 @@
 	.equ	OUTPORT_ADDRESS, 0xFFC0     ; Endereco do porto de saida
 	.equ 	INPUTPORT_ADDR, 0xFFB0		; Endereco do porto de entrada
 
-	.equ	PTC_ADDRESS, 0xFF00      		; Endereco do circuito pTC
+	.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
 	.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
-    .equ	PTC_TCR_ADDRESS, 0     	; Endereço de memória para ativar o [TCR Register] do pTC [0xFF00]
-	.equ	PTC_TMR_ADDRESS, 1     	; Endereço de memória para ativar o [TMR Register] do pTC [0xFF02]
+    .equ	PTC_TCR_ADDRESS, 0     		; Endereço de memória para ativar o [TCR Register] do pTC [0xFF00]
+	.equ	PTC_TMR_ADDRESS, 1     		; Endereço de memória para ativar o [TMR Register] do pTC [0xFF02]
 	.equ	PTC_TC_ADDRESS, 2     		; Endereço de memória para ativar o [TC Register] do pTC [0xFF04]
 	.equ	PTC_TIR_ADDRESS, 3			; Endereço de memória para ativar o [TIR Register] do pTC [0xFF06]
-	.equ	PTC_CMD_START, 1		; Comando para iniciar a contagem no pTC
-	.equ	PTC_CMD_STOP, 0		; Comando para parar a contagem no pTC
+	.equ	PTC_CMD_START, 0			; Comando para iniciar a contagem no pTC
+	.equ	PTC_CMD_STOP, 1				; Comando para parar a contagem no pTC
 
-	.equ	SYSCLK_INIT, 0             ; Valor inicial do sysclk
+	.equ	SYSCLK_INIT, 100              ; Valor inicial do sysclk
 	
 
 
@@ -119,6 +119,9 @@ next_round:
 	BL game_round
 
 	ADD R6, R6, #1					; INCREMENTA O Nº DA RONDA
+	BL clear_lights
+	MOV R0, #5
+	BL sleep
 	B next_round
 
 game_start_return:
@@ -810,14 +813,17 @@ moles_yellow:
     .byte 0xC0
 
 period:
-	.byte 0x05 ; 1s
-    .byte 0x0A ; 2s
-    .byte 0x0F ; 3s
-    .byte 0x14 ; 4s
-    .byte 0x19 ; 5s
-    .byte 0x1E ; 6s
-    .byte 0x23 ; 7s
-    .byte 0x28 ; 8s
+	.byte 0x63 ;10 s   
+	.byte 0x59 ;9  s
+    .byte 0x4F ;8  s
+    .byte 0x45 ;7  s
+    .byte 0x3B ;6  s
+    .byte 0x31 ;5  s
+    .byte 0x27 ;4  s
+    .byte 0x1D ;3  s
+    .byte 0x13 ;2  s
+    .byte 0x09 ;1  s
+    .byte 0x04 ;0.5s
 
 
 ; Seccao:    data
@@ -830,7 +836,7 @@ last_play:   	.space	1
 sysclk:			.space	2
 
 moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
-	.byte 0x22	; RONDA 1  => [ _1__ ]
+	.byte 0x20	; RONDA 1  => [ _1__ ]
 	.byte 0x40	; RONDA 2  => [ 1___ ]
 	.byte 0x02	; RONDA 3  => [ ___1 ]
 	.byte 0x04	; RONDA 4  => [ __1_ ]
@@ -852,3 +858,17 @@ stack_top:
 
 ; SE A FREQ FOR 100kH, dá 0.01ms por cada contagem de clock. Se for até 255, dá no maximo 2,5ms
 ; SE A FREQ FOR 1kH, dá 1ms por cada contagem de clock. Se for até 255, dá no maximo 255ms
+
+; 	TEMPO		CICLOS	PL		
+; 	10 s		100		99 	[0x63]
+; 	9  s		90		89	[0x59]
+; 	8  s		80		79	[0x4F]
+; 	7  s		70		69	[0x45]
+; 	6  s		60		59	[0x3B]
+; 	5  s		50		49	[0x31]
+; 	4  s		40		39	[0x27]
+; 	3  s		30		29	[0x1D]
+; 	2  s		20		19	[0x13]
+; 	1  s		10		09	[0x09]
+; 	0.5s		5		04	[0x04]
+; 
