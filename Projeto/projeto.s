@@ -1,11 +1,3 @@
-; 	TODO
-; 	1. Aguardar que o jogo comece cumprindo os requisitos expressos no enunciado;
-;	2. O jogo é constituído por uma única ronda, onde é afixada a toupeira numa posição fixa (sempre no mesmo buraco);
-;	3. A ronda termina quando o jogador conseguir "bater" na toupeira;
-;	4. O jogo termina, nesta fase, sempre com sucesso, e deve cumprir os requisitos expressos no enunciado;
-;	5. O jogo volta ao estado inicial.
-; 
-
 ; Definicao dos valores dos simbolos utilizados no programa
 ;
 	.equ	STACK_SIZE, 64              ; Dimensao do stack, em bytes
@@ -103,9 +95,6 @@ detect_cycle:
 	AND R0, R0, R1
 	
 	BZS detect_cycle
-
-
-
 game_setup_return:
 	POP PC
 ;; END Game_Setup_Fun
@@ -122,34 +111,12 @@ game_start_fun:
 	PUSH R5
 	BL clear_lights
 
-	ldr R3, moles_position_addr
-	ldrb R4, [R3]
-	
-	MOV R6, #0
+	MOV R6, #0						;Nº DA RONDA 
 next_round:
-	MOV R1, R6						;Nº DA RONDA 
-	BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY
+	MOV R0, R6						;Nº DA RONDA 
+	BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY em R0
 
-
-game_loop:
-
-	MOV R0, R4
-	MOV R1, #0x0F
-	BL detect_play
-	AND R0, R0, R0
-	
-	BZS game_loop
-	
-	BL convert_moleinput_moleoutput	; FICA EM R0 o index da marretada detetada
-	MOV R5, R0
-
-	BL get_mole_green 				; VAI BUSCAR A MASCARA QUE REPRESENTA OS LEDS VERDES NO INDEX DA MARRETA
-	AND R0, R0, R4
-
-	BZS game_loop
-	
-	MOV R0, R5
-	BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERDE
+	BL game_round
 
 	ADD R6, R6, #1					; INCREMENTA O Nº DA RONDA
 	B next_round
@@ -162,17 +129,76 @@ game_start_return:
 
 
 
+; Rotina:    game_round
+; Descricao: 
+; Entradas:  R0 -> posicoes das toupeiras
+; Saidas:    -
+; Efeitos:  
+game_round:
+	PUSH LR
+	PUSH R4
+
+	MOV R4, R0
+
+game_round_loop:
+	MOV R1, #0x0F
+	BL detect_play			; DEVOLVE A MASCARA DOS INPUTS DETETADOS
+	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
+	
+	BZS game_round_loop
+	
+	MOV R1, R4
+	BL if_mole_hit_change_color
+
+	BZS game_round_loop
+	
+	BL check_if_any_mole_left
+	AND R0, R0, R0
+	
+	BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
+
+	POP R4
+	POP PC
+
+
+; Rotina:    if_mole_hit_change_color
+; Descricao: 
+; Entradas:  R0 -> mascara de hits detetada
+; Entradas:  R1 -> posicoes das toupeiras
+; Saidas:    -
+; Efeitos:  
+if_mole_hit_change_color:
+	PUSH LR
+	PUSH R4
+
+	MOV R4, R1
+
+	BL convert_moleinput_moleoutput	; FICA EM R0 o index da marretada detetada
+	MOV R5, R0
+
+	BL get_mole_green 				; VAI BUSCAR A MASCARA QUE REPRESENTA OS LEDS VERDES NO INDEX DA MARRETA
+	AND R0, R0, R4
+
+	MOV R0, R5
+	BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERDE
+
+	POP R4
+	POP PC
+; end_is_mole_hit
+
+
+
+
 ; Rotina:    show_moles_state
 ; Descricao: 
-; Entradas:  R0 -> INDEX da marretada
-; Entradas:  R1 -> INDEX da ronda
+; Entradas:  R0 -> INDEX da ronda
 ; Saidas:    -
 ; Efeitos:  
 show_moles_state:
 	PUSH LR
 	
 	LDR R2, moles_position_addr
-	LDRB R3, [R2, R1]
+	LDRB R3, [R2, R0]
 
 	MOV R0, R3
 	BL outport_write
@@ -192,11 +218,13 @@ moles_position_addr: .word moles_position
 ; Efeitos:   
 detect_play:
 	PUSH LR
+	PUSH R4
 	
 	BL read_marreta 				; Lê e retorna os 4 bits de menor peso R0
 	MOV R1, #0x0F
 	BL falling_edge_v2
 
+	POP R4
 	POP PC
 
 ;END DETECT_PLAY
@@ -489,6 +517,23 @@ turn_mole_red:
 	POP R4
 	POP PC
 ;END TURN_MOLE_RED
+
+
+; Rotina:    check_if_any_mole_left
+; Descricao: 
+; Entradas: 
+; Saidas:    -
+; Efeitos:  
+check_if_any_mole_left:
+	LDR R1, out_port_img_addr	; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
+	LDRB R1, [R1]				; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
+
+	MOV R2, #0xAA				; MASCARA QUE CORRESPONDE A TODAS AS POSIÇÕES POSSIVEIS DAS TOUPEIRAS VIVAS
+	AND R0, R1, R2
+
+	MOV PC, LR
+; end check
+
 
 ; Rotina:    check_mole_position
 ; Descricao: 
@@ -785,13 +830,16 @@ last_play:   	.space	1
 sysclk:			.space	2
 
 moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
-	.byte 0x20 
-	.byte 0x40 
-	.byte 0x02 
-	.byte 0x04 
-	.byte 0x42 
-	.byte 0x44 
-	.byte 0x22 
+	.byte 0x22	; RONDA 1  => [ _1__ ]
+	.byte 0x40	; RONDA 2  => [ 1___ ]
+	.byte 0x02	; RONDA 3  => [ ___1 ]
+	.byte 0x04	; RONDA 4  => [ __1_ ]
+	.byte 0x20	; RONDA 5  => [ _1__ ]
+	.byte 0x44	; RONDA 6  => [ 1_1_ ]
+	.byte 0x22	; RONDA 7  => [ _1_1 ]
+	.byte 0x24	; RONDA 8  => [ _11_ ]
+	.byte 0x42	; RONDA 9  => [ 1_1_ ]
+	.byte 0x24	; RONDA 10 => [ _11_ ]
 
 
 ; Seccao:    stack
