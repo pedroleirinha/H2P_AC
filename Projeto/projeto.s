@@ -9,6 +9,11 @@
 	.equ 	ALL_RED_LIGHTS, 0x55
 	.equ 	ALL_YELLOW_LIGHTS, 0xFF
 	.equ 	NO_LIGHTS, 0x00
+	
+	.equ 	VICTORY_LIGHTS, 0x01
+	.equ 	LOSER_LIGHTS, 0x00
+
+	.equ 	WAIT_500MS, 0x53
 
 	.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
 	.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
@@ -76,11 +81,13 @@ game_finished:
 	BEQ game_finished_loss
 
 game_finished_vitory:
-	BL vitory_lights
+	MOV R0, #VICTORY_LIGHTS 
+	BL flashing_lights
 	B return_game
 
 game_finished_loss:
-	BL losing_lights
+	MOV R0, #LOSER_LIGHTS 
+	BL flashing_lights
 
 return_game:
 
@@ -133,38 +140,40 @@ game_start_fun:
 	PUSH LR
 	PUSH R4
 	PUSH R5
-	PUSH R6
+	
 	BL clear_lights
 
 	LDR R1, diff_addr
 	LDRB R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
 	
-	BL sysclk_init
 
-	MOV R6, #10
-	MOV R5, #0						;Nº DA RONDA 
+	MOV R5, #10
+	MOV R4, #0						;Nº DA RONDA 
 next_round:
-	MOV R0, R5						;Nº DA RONDA 
+	MOV R0, R4						;Nº DA RONDA 
 	BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY em R0
 
 	BL game_round
+	AND R0, R0, R0
+	BZS game_start_return_false
 
-	ADD R5, R5, #1					; INCREMENTA O Nº DA RONDA
-	
-	MOV R0, #0
-	BL sleep
+	ADD R4, R4, #1					; INCREMENTA O Nº DA RONDA
 	
 	BL clear_lights
-	
-	CMP R6, R5
-	BEQ game_start_return
+	MOV R0, #WAIT_500MS
+	BL wait_ticks
+		
+	CMP R5, R4
+	BEQ game_start_return_true
 	
 	B next_round
 
-game_start_return:
+game_start_return_true:
 	MOV R0, #1
-
-	POP R6
+	B game_start_return
+game_start_return_false:
+	MOV R0, #0
+game_start_return:
 	POP R5
 	POP R4
 	POP PC
@@ -181,26 +190,54 @@ game_round:
 	PUSH LR
 	PUSH R4
 	PUSH R5
+	PUSH R6
+	PUSH R7
 
 	MOV R4, R0
 
+	BL time_get_ref					; Começa a contar o tempo da ronda
+	MOV R5, R0						; Guarda o valor do contador no momento do inicio
+
+	LDR R1, diff_addr
+	LDRB R6, [R1]					; Valor de ciclos referncia para esta dificuldade
+
+	
 game_round_loop:
+    MOV R0, R5				; Metemos em R0, o valor que estava no inicio da contagem
+    BL time_elapsed         ; Calcula diferença entre agora e R1
+    CMP R0, R6              ; Compara tempo decorrido com o desejado
+    BHS game_timeout		; Enquanto decorrido < desejado, espera
+
+
 	MOV R1, #0x0F
 	BL detect_play			; DEVOLVE A MASCARA DOS INPUTS DETETADOS
 	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
-	
+
 	BZS game_round_loop
 	
 	MOV R1, R4
 	BL if_mole_hit_change_color
+	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE TROCAS
 
 	BZS game_round_loop
-	
+
+	; HOUVE UMA TOUPEIRA QUE PASSOU A VERMELHO
+	;BL time_get_ref					; Começa a contar o tempo da ronda
+	;MOV R7, R0						; Guarda o valor do contador no momento do inicio
+
 	BL check_if_any_mole_left
 	AND R0, R0, R0
 	
 	BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
 
+	B game_return
+game_timeout:
+	MOV R0, #0
+
+game_return:
+
+	POP R7
+	POP R6
 	POP R5
 	POP R4
 	POP PC
@@ -264,19 +301,29 @@ sleep_end:
 
 ; Rotina:    vitory_lights
 ; Descricao: 
-; Entradas:  -
+; Entradas:  R0  -> State. 0 -> Loss | 1 -> Victory
 ; Saidas:    -
-; Efeitos:  
-vitory_lights:
+; Efeitos:  Pisca os leds 3 vezes com base no parametro de entrada R0. 
+;	Usa uma função auxiliar que permite esperar meio segundo, atraves do pico timer, antes de acender ou apagar o led
+flashing_lights:
 	PUSH LR
 	PUSH R4
 
 	MOV R4, #3
+	
+	MOV R1, #WAIT_500MS
+	
+	MOV R2, #LOSER_LIGHTS
+	CMP R0, R2
+	BEQ loser_prep
 
-	LDR R1, period_addr
-	LDR R1, [R1, #0]	; Vai buscar o número de ciclos para obter 500ms / 0.5s
+victory_prep:
+	MOV R2, #VICTORY_LIGHTS
+	B flashing_lights_loop
+loser_prep:
+	MOV R2, #LOSER_LIGHTS
 
-vitory_loop:
+flashing_lights_loop:
 	MOV R0, #ALL_GREEN_LIGHTS	; METE TUDO A VERDE
 	BL outport_write
 	
@@ -289,10 +336,10 @@ vitory_loop:
 	BL wait_ticks
 
 	SUB R4, R4, #1
-	BZS victory_retur
-	B vitory_loop
+	BZS flashing_lights_retur
+	B flashing_lights_loop
 
-victory_retur:
+flashing_lights_retur:
 	POP R4
 	POP PC
 ;END
@@ -317,39 +364,13 @@ wait_ticks:
 wait_loop:
     MOV R0, R1
     BL time_elapsed         ; Calcula diferença entre agora e R1
-    CMP R0, R2              ; Compara tempo decorrido com o desejado [3]
-    BLT wait_loop          ; Enquanto decorrido < desejado, espera [5]
+    CMP R0, R2              ; Compara tempo decorrido com o desejado
+    BLT wait_loop          ; Enquanto decorrido < desejado, espera
 
     POP R2
     POP R1
     POP PC
 
-
-; Rotina:    losing_lights
-; Descricao: 
-; Entradas:  -
-; Saidas:    -
-; Efeitos:  
-losing_lights:
-	PUSH LR
-	
-	MOV R1, #3
-
-losing_loop:
-	MOV R0, #ALL_RED_LIGHTS
-	BL outport_write
-	
-	MOV R0, #0
-	BL sleep
-
-	BL clear_lights
-	SUB R1, R1, #1
-	BZS losing_retur
-	B losing_loop
-
-losing_retur:
-	POP PC
-;END
 
 ; Rotina:    if_mole_hit_change_color
 ; Descricao: 
@@ -360,6 +381,7 @@ losing_retur:
 if_mole_hit_change_color:
 	PUSH LR
 	PUSH R4
+	PUSH R5
 
 	MOV R4, R1
 
@@ -369,12 +391,21 @@ if_mole_hit_change_color:
 	BL get_mole_green 				; VAI BUSCAR A MASCARA QUE REPRESENTA OS LEDS VERDES NO INDEX DA MARRETA
 	AND R0, R0, R4					; VALIDA SE O BIT GREEN OBTIDO CORRESPONDE À POSICAO DA TOUPEIRA
 
-	BZS if_mole_hit_change_color_end
+	BZS mole_hit_return_false
 
 	MOV R0, R5
-	BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERDE
+	BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERMERLHO
+	B mole_hit_return_true
 
-if_mole_hit_change_color_end:
+mole_hit_return_false:
+	MOV R0, #0
+	B mole_hit_return
+mole_hit_return_true:
+	MOV R0, #1
+
+mole_hit_return:
+
+	POP R5
 	POP R4
 	POP PC
 ; end_is_mole_hit
@@ -749,7 +780,7 @@ time_elapsed:
 
 	BL sysclk_get_ticks		; Retorna o valor atual do sysclock
 
-	SUB R0, R1, R0			; Calcula a diferença entre o tempo atual (sysclk) e o valor referncia (sysclk antigo)
+	SUB R0, R0, R1			; Calcula a diferença entre o tempo atual (sysclk) e o valor referncia (sysclk antigo)
 
 	POP PC
 ;time_elapsed
@@ -907,7 +938,6 @@ moles_yellow:
 
 ;1KHZ
 period: 
-	.word 0x53 	; 0.5 s   
 	.word 0xA7 	; 1	  s
     .word 0x14F ; 2	  s
     .word 0x1F7 ; 3	  s
