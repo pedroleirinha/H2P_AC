@@ -127,7 +127,19 @@ game_start_fun:
 	MOV R5, #ROUNDS_COUNT
 	MOV R4, #0						;Nº DA RONDA 
 next_round:
-	MOV R0, R4						;Nº DA RONDA 
+	
+	
+	;MOV R0, R4						;Nº DA RONDA 
+random_loop:
+	BL generate_random_mole
+	MOV R3, R0
+
+	MOV R1, #ALL_GREEN_LIGHTS
+	CMP R1, R3
+	BEQ random_loop
+	AND R3, R3, R3
+	BZS random_loop					; CASO não ha toupeira gera uma nova
+
 	BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY em R0
 
 	BL game_round
@@ -180,7 +192,6 @@ game_round:
 
 	LDR R1, diff_addr
 	LDR R6, [R1]					; Valor de ciclos referncia para esta dificuldade
-
 	
 game_round_loop:
     MOV R0, R5				; Metemos em R0, o valor que estava no inicio da contagem
@@ -272,14 +283,16 @@ game_setup_fun:
 	BL game_start_signal 
 	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
 
-	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+	MOV R4, #0x01
 detect_cycle:
-	MOV R1, #0x01
+	MOV R1, R4
 	BL detect_play
-	AND R0, R0, R1
+	AND R0, R0, R4
 	
 	BZS detect_cycle
 game_setup_return:
+	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+
 	POP PC
 ;; END Game_Setup_Fun
 
@@ -433,10 +446,10 @@ mole_hit_return:
 show_moles_state:
 	PUSH LR
 	
-	LDR R2, moles_position_addr
-	LDRB R3, [R2, R0]
+	;LDR R2, moles_position_addr
+	;LDRB R3, [R2, R0]
 
-	MOV R0, R3
+	;MOV R0, R3
 	BL outport_write
 
 	POP PC
@@ -681,20 +694,29 @@ check_mole_return:
 ;END CHECK_MOLE_POSITION
 
 
+;COMMENTS
+generate_new_mole:
+	PUSH LR
 
-; Rotina:    generate_random_mole
-; Descricao: 
-; Entradas:  
-; Saidas:    -
-; Efeitos:   
+	BL sysclk_get_ticks		; VAI buscar o valor da variavel sysclk
+	MOV R1, #ALL_GREEN_LIGHTS
+	AND R0, R0, R1			; Filtra para ficar só com as toupeiras verdes
+
+
+	POP PC
+;END
+
+;COMMENTS
 generate_random_mole:
 	PUSH LR
 
-	;BL 
+	BL sysclk_get_ticks		; VAI buscar o valor da variavel sysclk
+	MOV R1, #ALL_GREEN_LIGHTS
+	AND R0, R0, R1			; Filtra para ficar só com as toupeiras verdes
 
-	;POP PC
-;END 
 
+	POP PC
+;END
 
 
 
@@ -969,13 +991,13 @@ moles_yellow:
 
 ;1KHZ
 period: 
-    .word 0x68F ; 10  s
+    .word 0x7D0 ; 10  s
     .word 0x5E7 ; 9	  s
     .word 0x479 ; 7	  s
     .word 0x347 ; 5	  s
-    .word 0x29F ; 4	  s
+    .word 0x320 ; 4	  s
+	.word 0x1F8 ; 3	  s
     .word 0x14F ; 2	  s
-	.word 0xA7 	; 1	  s
 	.word 0xA7 	; 1	  s
 
 
