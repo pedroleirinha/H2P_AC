@@ -1,109 +1,119 @@
-P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Projeto\projeto.lst	Fri May 29 15:15:43 2026
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Projeto\projeto.lst	Wed Jun 03 15:39:25 2026
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      022B 555
-1       .data           022C      000F 15
-2       .stack          023C      0040 64
+0       .text           0000      02A2 674
+1       .data           02A2      000F 15
+2       .stack          02B2      0040 64
 
 Symbols
 Name                    Type      Value       Section
 ALL_GREEN_LIGHTS        ABSOLUTE  00AA 170    .text
 ALL_RED_LIGHTS          ABSOLUTE  0055 85     .text
 ALL_YELLOW_LIGHTS       ABSOLUTE  00FF 255    .text
-check_if_any_mole_left  LABEL     0170 368    .text
-check_mole_position     LABEL     017A 378    .text
-check_mole_return       LABEL     0184 388    .text
-clear_lights            LABEL     014A 330    .text
-convert_end             LABEL     012E 302    .text
-convert_moleinput_moleoutput LABEL     0124 292    .text
-convert_while           LABEL     0126 294    .text
-detect_cycle            LABEL     0028 40     .text
-detect_play             LABEL     00C6 198    .text
-diff_addr               LABEL     0122 290    .text
-dificulty_time          LABEL     022C 556    .data
+check_if_any_mole_left  LABEL     01CE 462    .text
+check_mole_position     LABEL     01D8 472    .text
+check_mole_return       LABEL     01E2 482    .text
+clear_lights            LABEL     01A8 424    .text
+convert_end             LABEL     018C 396    .text
+convert_moleinput_moleoutput LABEL     0182 386    .text
+convert_while           LABEL     0184 388    .text
+detect_cycle            LABEL     002E 46     .text
+detect_play             LABEL     0150 336    .text
+diff_addr               LABEL     00BE 190    .text
+dificulty_time          LABEL     02A2 674    .data
 ENABLE_EXTINT           ABSOLUTE  0010 16     .text
-falling_edge_v2         LABEL     00D4 212    .text
-game_finished           LABEL     000E 14     .text
-game_finished_loss      LABEL     001A 26     .text
-game_finished_vitory    LABEL     0016 22     .text
-game_round              LABEL     0052 82     .text
-game_round_loop         LABEL     005A 90     .text
-game_setup_fun          LABEL     001E 30     .text
-game_setup_return       LABEL     0030 48     .text
-game_start_fun          LABEL     0032 50     .text
-game_start_return       LABEL     004C 76     .text
-game_start_signal       LABEL     0142 322    .text
-get_mole_green          LABEL     0138 312    .text
-get_mole_red            LABEL     0132 306    .text
-if_mole_hit_change_color LABEL     00A0 160    .text
-if_mole_hit_change_color_end LABEL     00B4 180    .text
-inport_read             LABEL     01AC 428    .text
-input_port_addr         LABEL     01B2 434    .text
+falling_edge_v2         LABEL     015E 350    .text
+flashing_lights         LABEL     00D6 214    .text
+flashing_lights_loop    LABEL     00EA 234    .text
+flashing_lights_retur   LABEL     00FE 254    .text
+game_finished           LABEL     0012 18     .text
+game_finished_loss      LABEL     0020 32     .text
+game_finished_vitory    LABEL     001A 26     .text
+game_return             LABEL     00A2 162    .text
+game_round              LABEL     006C 108    .text
+game_round_loop         LABEL     0080 128    .text
+game_setup_fun          LABEL     0026 38     .text
+game_setup_return       LABEL     0036 54     .text
+game_start_fun          LABEL     0038 56     .text
+game_start_return       LABEL     0066 102    .text
+game_start_return_false LABEL     0064 100    .text
+game_start_return_true  LABEL     0060 96     .text
+game_start_signal       LABEL     01A0 416    .text
+game_timeout            LABEL     00A0 160    .text
+get_mole_green          LABEL     0196 406    .text
+get_mole_red            LABEL     0190 400    .text
+if_mole_hit_change_color LABEL     011E 286    .text
+inport_read             LABEL     020A 522    .text
+input_port_addr         LABEL     0210 528    .text
 INPUTPORT_ADDR          ABSOLUTE  FFB0 65456  .text
 INT_CS_ADDRESS          ABSOLUTE  FF00 65280  .text
-isr                     LABEL     01B8 440    .text
-last_play               LABEL     022E 558    .data
-last_play_addr          LABEL     00E2 226    .text
-losing_lights           LABEL     008A 138    .text
-losing_loop             LABEL     008E 142    .text
-losing_retur            LABEL     009E 158    .text
+isr                     LABEL     0226 550    .text
+last_play               LABEL     02A4 676    .data
+last_play_addr          LABEL     016C 364    .text
+LOSER_LIGHTS            ABSOLUTE  0000 0      .text
+loser_prep              LABEL     00E8 232    .text
 main                    LABEL     000A 10     .text
-moles_green             LABEL     0218 536    .text
-moles_green_addr        LABEL     0140 320    .text
-moles_position          LABEL     0231 561    .data
-moles_position_addr     LABEL     00C4 196    .text
-moles_red               LABEL     0214 532    .text
-moles_red_addr          LABEL     013E 318    .text
-moles_yellow            LABEL     021C 540    .text
-next_round              LABEL     003C 60     .text
+mole_hit_return         LABEL     013C 316    .text
+mole_hit_return_false   LABEL     0136 310    .text
+mole_hit_return_true    LABEL     013A 314    .text
+moles_green             LABEL     0286 646    .text
+moles_green_addr        LABEL     019E 414    .text
+moles_position          LABEL     02A7 679    .data
+moles_position_addr     LABEL     014E 334    .text
+moles_red               LABEL     0282 642    .text
+moles_red_addr          LABEL     019C 412    .text
+moles_yellow            LABEL     028A 650    .text
+next_round              LABEL     0048 72     .text
 NO_LIGHTS               ABSOLUTE  0000 0      .text
-out_port_addr           LABEL     01B4 436    .text
-out_port_img_addr       LABEL     01B6 438    .text
+out_port_addr           LABEL     0212 530    .text
+out_port_img_addr       LABEL     0214 532    .text
 OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .text
-outport_clr_bits        LABEL     0192 402    .text
-outport_img             LABEL     022D 557    .data
-outport_set_bits        LABEL     0186 390    .text
-outport_write           LABEL     01A0 416    .text
-period                  LABEL     0220 544    .text
-period_addr             LABEL     0120 288    .text
+outport_clr_bits        LABEL     01F0 496    .text
+outport_img             LABEL     02A3 675    .data
+outport_set_bits        LABEL     01E4 484    .text
+outport_write           LABEL     01FE 510    .text
+period                  LABEL     028E 654    .text
+period_addr             LABEL     0102 258    .text
 program                 LABEL     0004 4      .text
-PTC_ADDR                LABEL     0212 530    .text
+PTC_ADDR                LABEL     0280 640    .text
 PTC_ADDRESS             ABSOLUTE  FF00 65280  .text
-ptc_clr_irq             LABEL     020C 524    .text
+ptc_clr_irq             LABEL     027A 634    .text
 PTC_CMD_START           ABSOLUTE  0000 0      .text
 PTC_CMD_STOP            ABSOLUTE  0001 1      .text
-ptc_get_value           LABEL     0206 518    .text
-ptc_init                LABEL     01E4 484    .text
-ptc_start               LABEL     01F6 502    .text
-ptc_stop                LABEL     01FE 510    .text
-PTC_TC_ADDRESS          ABSOLUTE  0002 2      .text
+ptc_get_value           LABEL     0274 628    .text
+ptc_init                LABEL     0252 594    .text
+ptc_start               LABEL     0264 612    .text
+ptc_stop                LABEL     026C 620    .text
+PTC_TC_ADDRESS          ABSOLUTE  0004 4      .text
 PTC_TCR_ADDRESS         ABSOLUTE  0000 0      .text
-PTC_TIR_ADDRESS         ABSOLUTE  0003 3      .text
-PTC_TMR_ADDRESS         ABSOLUTE  0001 1      .text
-read_and_save_game_dificulty LABEL     00F8 248    .text
-read_marreta            LABEL     0152 338    .text
-return_game             LABEL     001C 28     .text
-show_moles_state        LABEL     00B8 184    .text
-sleep                   LABEL     010A 266    .text
-sleep_end               LABEL     011E 286    .text
-sleep_inner_loop        LABEL     0116 278    .text
-sleep_outer_loop        LABEL     0112 274    .text
+PTC_TIR_ADDRESS         ABSOLUTE  0006 6      .text
+PTC_TMR_ADDRESS         ABSOLUTE  0002 2      .text
+read_and_save_game_dificulty LABEL     00AC 172    .text
+read_marreta            LABEL     01B0 432    .text
+return_game             LABEL     0024 36     .text
+show_moles_state        LABEL     0142 322    .text
+sleep                   LABEL     00C0 192    .text
+sleep_end               LABEL     00D4 212    .text
+sleep_inner_loop        LABEL     00CC 204    .text
+sleep_outer_loop        LABEL     00C8 200    .text
 STACK_SIZE              ABSOLUTE  0040 64     .text
-stack_top               LABEL     027C 636    .stack
+stack_top               LABEL     02F2 754    .stack
 stack_top_addr          LABEL     0008 8      .text
-start_up_interruptions  LABEL     00E4 228    .text
-sysclk                  LABEL     022F 559    .data
-SYSCLK_ADDR             LABEL     01E2 482    .text
-sysclk_get_ticks        LABEL     01DC 476    .text
-SYSCLK_INIT             ABSOLUTE  0064 100    .text
-sysclk_init             LABEL     01D0 464    .text
-time_elapsed            LABEL     01B8 440    .text
-time_get_ref            LABEL     01B8 440    .text
-turn_mole_red           LABEL     015C 348    .text
-victory_retur           LABEL     0088 136    .text
-vitory_lights           LABEL     0074 116    .text
-vitory_loop             LABEL     0078 120    .text
+start_up_interruptions  LABEL     016E 366    .text
+sysclk                  LABEL     02A5 677    .data
+SYSCLK_ADDR             LABEL     0250 592    .text
+sysclk_get_ticks        LABEL     024A 586    .text
+sysclk_init             LABEL     023E 574    .text
+SYSCLK_INIT             ABSOLUTE  0006 6      .text
+time_elapsed            LABEL     021C 540    .text
+time_get_ref            LABEL     0216 534    .text
+turn_mole_red           LABEL     01BA 442    .text
+VICTORY_LIGHTS          ABSOLUTE  0001 1      .text
+victory_prep            LABEL     00E4 228    .text
+WAIT_500MS              ABSOLUTE  0053 83     .text
+wait_loop               LABEL     0110 272    .text
+wait_ticks              LABEL     0104 260    .text
 
 Code listing
    1           	; Definicao dos valores dos simbolos utilizados no programa
@@ -117,899 +127,995 @@ Code listing
    9          		.equ 	ALL_RED_LIGHTS, 0x55
   10          		.equ 	ALL_YELLOW_LIGHTS, 0xFF
   11          		.equ 	NO_LIGHTS, 0x00
-  12           	
-  13          		.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
-  14          		.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
-  15          	    .equ	PTC_TCR_ADDRESS, 0     		; Endereço de memória para ativar o [TCR Register] do pTC [0xFF00]
-  16          		.equ	PTC_TMR_ADDRESS, 1     		; Endereço de memória para ativar o [TMR Register] do pTC [0xFF02]
-  17          		.equ	PTC_TC_ADDRESS, 2     		; Endereço de memória para ativar o [TC Register] do pTC [0xFF04]
-  18          		.equ	PTC_TIR_ADDRESS, 3			; Endereço de memória para ativar o [TIR Register] do pTC [0xFF06]
-  19          		.equ	PTC_CMD_START, 0			; Comando para iniciar a contagem no pTC
-  20          		.equ	PTC_CMD_STOP, 1				; Comando para parar a contagem no pTC
-  21           	
-  22          		.equ	SYSCLK_INIT, 100              ; Valor inicial do sysclk
-  23           		
-  24           	
-  25           	
-  26           	; Seccao:    text
-  27           	; Descricao: Guarda o codigo do programa
-  28           	;
-  29           		.text
-  30 0000 01 58		b	program
-  31 0002 DA 58		b	isr
-  32           	program:
-  33 0004 1D 0C		LDR	sp, stack_top_addr
-  34 0006 01 58	    b   main
-  35           	
-  36           	stack_top_addr:
-  37 0008 7C 02		.word	stack_top
-  38           	
-  39           	; Rotina:    MAIN Function
-  40           	; Descricao: -
-  41           	; Entradas:  -
-  42           	; Saidas:    -
-  43           	; Efeitos:   -
-  44           	main:
-  45           		
-  46           		;BL game_setup_fun
-  47 000A 13 5C		BL game_start_fun
-  48           		;BL game_finished
-  49           		
-  50 000C FE 5B		B main
-  51           		
-  52           	;; END MAIN
-  53           	
-  54           	
-  55           	;
-  56           	; >> Função GAME FINISHED << Rotina que é executada depois do jogo terminar, 
-  57           	;	quer por tempo terminado ou por concluir as rondas todas
-  58           	; Tipo: - NAO FOLHA -
-  59           	; Parametros de entrada:
-  60           	;	R0 -> Estado do jogo [0 - DERROTA; 1 - VITORIA]
-  61           	; variaveis locais:
-  62           	;	R1 -> i (para o ciclo)
-  63           	; Parametros de saida:
-  64           	;   VOID
-  65           	;
-  66           	game_finished:
-  67 000E 0E 24		PUSH LR
-  68           	
-  69 0010 01 60		MOV R1, #0
-  70 0012 10 B8		CMP R1, R0
-  71           	
-  72 0014 02 40		BEQ game_finished_loss
-  73           	
-  74           	game_finished_vitory:
-  75 0016 2E 5C		BL vitory_lights
-  76 0018 01 58		B return_game
+  12           		
+  13          		.equ 	VICTORY_LIGHTS, 0x01
+  14          		.equ 	LOSER_LIGHTS, 0x00
+  15           	
+  16          		.equ 	WAIT_500MS, 0x53
+  17           	
+  18          		.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
+  19          		.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
+  20          	    .equ	PTC_TCR_ADDRESS, 0     		; Endereço de memória para ativar o [TCR Register] do pTC [0xFF00]
+  21          		.equ	PTC_TMR_ADDRESS, 2     		; Endereço de memória para ativar o [TMR Register] do pTC [0xFF02]
+  22          		.equ	PTC_TC_ADDRESS, 4     		; Endereço de memória para ativar o [TC Register] do pTC [0xFF04]
+  23          		.equ	PTC_TIR_ADDRESS, 6			; Endereço de memória para ativar o [TIR Register] do pTC [0xFF06]
+  24          		.equ	PTC_CMD_START, 0			; Comando para iniciar a contagem no pTC
+  25          		.equ	PTC_CMD_STOP, 1				; Comando para parar a contagem no pTC
+  26           	
+  27           	;; O VALOR DO CONTADOR INTERNO DO PICO TIMER SERA SEMPRE 6 PARA GARANTIR QUE É SEMPRE FEITA INTERRUPÇÕES A CADA 6MS
+  28           	;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS CLOCKS A CADA 1MS
+  29           	;; ASSUMIMOS QUE O ISR DEMORA 1.2MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 5MS
+  30           	
+  31          		.equ	SYSCLK_INIT, 0x06           ; Valor inicial do sysclk que garante a frequencia em segundos das interrupções
+  32           		
+  33           	
+  34           	
+  35           	; Seccao:    text
+  36           	; Descricao: Guarda o codigo do programa
+  37           	;
+  38           		.text
+  39 0000 01 58		b	program
+  40 0002 11 59		b	isr
+  41           	program:
+  42 0004 1D 0C		LDR	sp, stack_top_addr
+  43 0006 01 58	    b   main
+  44           	
+  45           	stack_top_addr:
+  46 0008 F2 02		.word	stack_top
+  47           	
+  48           	; Rotina:    MAIN Function
+  49           	; Descricao: -
+  50           	; Entradas:  -
+  51           	; Saidas:    -
+  52           	; Efeitos:   -
+  53           	main:
+  54           		
+  55 000A 0D 5C		BL game_setup_fun
+  56 000C 15 5C		BL game_start_fun
+  57 000E 01 5C		BL game_finished
+  58           		
+  59 0010 FC 5B		B main
+  60           		
+  61           	;; END MAIN
+  62           	
+  63           	
+  64           	;
+  65           	; >> Função GAME FINISHED << Rotina que é executada depois do jogo terminar, 
+  66           	;	quer por tempo terminado ou por concluir as rondas todas
+  67           	; Tipo: - NAO FOLHA -
+  68           	; Parametros de entrada:
+  69           	;	R0 -> Estado do jogo [0 - DERROTA; 1 - VITORIA]
+  70           	; variaveis locais:
+  71           	;	R1 -> i (para o ciclo)
+  72           	; Parametros de saida:
+  73           	;   VOID
+  74           	;
+  75           	game_finished:
+  76 0012 0E 24		PUSH LR
   77           	
-  78           	game_finished_loss:
-  79 001A 37 5C		BL losing_lights
+  78 0014 01 60		MOV R1, #0
+  79 0016 10 B8		CMP R1, R0
   80           	
-  81           	return_game:
+  81 0018 03 40		BEQ game_finished_loss
   82           	
-  83 001C 0F 04		POP PC
-  84           	;END GAME_FINISHED
-  85           	
-  86           	;
-  87           	; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
-  88           	;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
-  89           	;	deteta o primeiro input para iniciar o jogo
-  90           	; Tipo: - NAO FOLHA -
-  91           	; Parametros de entrada:
-  92           	;	-
-  93           	; variaveis locais:
-  94           	;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
-  95           	; Parametros de saida:
-  96           	;   VOID
+  83           	game_finished_vitory:
+  84 001A 10 60		MOV R0, #VICTORY_LIGHTS 
+  85 001C 5C 5C		BL flashing_lights
+  86 001E 02 58		B return_game
+  87           	
+  88           	game_finished_loss:
+  89 0020 00 60		MOV R0, #LOSER_LIGHTS 
+  90 0022 59 5C		BL flashing_lights
+  91           	
+  92           	return_game:
+  93           	
+  94 0024 0F 04		POP PC
+  95           	;END GAME_FINISHED
+  96           	
   97           	;
-  98           	game_setup_fun:
-  99 001E 0E 24		PUSH LR
- 100           		
- 101 0020 90 5C		BL game_start_signal 
- 102 0022 6A 5C		BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
- 103 0024 5F 5C		BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
- 104 0026 D4 5C		BL sysclk_init
- 105           	detect_cycle:
- 106 0028 11 60		MOV R1, #0x01
- 107 002A 4D 5C		BL detect_play
- 108 002C 80 C0		AND R0, R0, R1
- 109           		
- 110 002E FC 43		BZS detect_cycle
- 111           	game_setup_return:
- 112 0030 0F 04		POP PC
- 113           	;; END Game_Setup_Fun
+  98           	; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
+  99           	;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
+ 100           	;	deteta o primeiro input para iniciar o jogo
+ 101           	; Tipo: - NAO FOLHA -
+ 102           	; Parametros de entrada:
+ 103           	;	-
+ 104           	; variaveis locais:
+ 105           	;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
+ 106           	; Parametros de saida:
+ 107           	;   VOID
+ 108           	;
+ 109           	game_setup_fun:
+ 110 0026 0E 24		PUSH LR
+ 111           		
+ 112 0028 BB 5C		BL game_start_signal 
+ 113 002A A1 5C		BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
  114           	
- 115           	
- 116           	;
- 117           	; >> Função GAME START << Rotina que inicializa o jogo. 
- 118           	;	Limpa os LEDS da placa, lê as posições do array das toupeiras com base no nº da ronda
- 119           	;	INICIA a rounda e no final, se houver o jogador vender, incrementa a ronda e recomeça o jogo
- 120           	; Tipo: - NAO FOLHA -
- 121           	; Parametros de entrada:
- 122           	;	-
- 123           	; variaveis locais:
- 124           	;	R5 -> rondaNum (Número da ronda que é incrementado após a ronda anterior terminar com uscesso)
- 125           	; Parametros de saida:
- 126           	;   VOID
+ 115 002C 3F 5C		BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+ 116           	detect_cycle:
+ 117 002E 11 60		MOV R1, #0x01
+ 118 0030 8F 5C		BL detect_play
+ 119 0032 80 C0		AND R0, R0, R1
+ 120           		
+ 121 0034 FC 43		BZS detect_cycle
+ 122           	game_setup_return:
+ 123 0036 0F 04		POP PC
+ 124           	;; END Game_Setup_Fun
+ 125           	
+ 126           	
  127           	;
- 128           	game_start_fun:
- 129 0032 0E 24		PUSH LR
- 130 0034 04 24		PUSH R4
- 131 0036 05 24		PUSH R5
- 132 0038 88 5C		BL clear_lights
- 133           	
- 134 003A 05 60		MOV R5, #0						;Nº DA RONDA 
- 135           	next_round:
- 136 003C 80 B2		MOV R0, R5						;Nº DA RONDA 
- 137 003E 3C 5C		BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY em R0
- 138           	
- 139 0040 08 5C		BL game_round
- 140           	
- 141 0042 D5 A0		ADD R5, R5, #1					; INCREMENTA O Nº DA RONDA
- 142 0044 82 5C		BL clear_lights
- 143 0046 50 60		MOV R0, #5
- 144 0048 60 5C		BL sleep
- 145 004A F8 5B		B next_round
- 146           	
- 147           	game_start_return:
- 148 004C 04 04		POP R4
- 149 004E 05 04		POP R5
- 150 0050 0F 04		POP PC
- 151           	;; END Game_Start_Fun
- 152           	
- 153           	
- 154           	
- 155           	; Rotina:    game_round
- 156           	; Descricao: 
- 157           	; Entradas:  R0 -> posicoes das toupeiras
- 158           	; Saidas:    -
- 159           	; Efeitos:  
- 160           	game_round:
- 161 0052 0E 24		PUSH LR
- 162 0054 04 24		PUSH R4
- 163 0056 05 24		PUSH R5
- 164           	
- 165 0058 04 B0		MOV R4, R0
- 166           	
- 167           	game_round_loop:
- 168 005A F1 60		MOV R1, #0x0F
- 169 005C 34 5C		BL detect_play			; DEVOLVE A MASCARA DOS INPUTS DETETADOS
- 170 005E 00 C0		AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
- 171           		
- 172 0060 FC 43		BZS game_round_loop
- 173           		
- 174 0062 01 B2		MOV R1, R4
- 175 0064 1D 5C		BL if_mole_hit_change_color
- 176           	
- 177 0066 F9 43		BZS game_round_loop
- 178           		
- 179 0068 83 5C		BL check_if_any_mole_left
- 180 006A 00 C0		AND R0, R0, R0
- 181           		
- 182 006C F6 47		BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
+ 128           	; >> Função GAME START << Rotina que inicializa o jogo. 
+ 129           	;	Limpa os LEDS da placa, lê as posições do array das toupeiras com base no nº da ronda
+ 130           	;	INICIA a rounda e no final, se houver o jogador vender, incrementa a ronda e recomeça o jogo
+ 131           	; Tipo: - NAO FOLHA -
+ 132           	; Parametros de entrada:
+ 133           	;	-
+ 134           	; variaveis locais:
+ 135           	;	R5 -> rondaNum (Número da ronda que é incrementado após a ronda anterior terminar com uscesso)
+ 136           	; Parametros de saida:
+ 137           	;   VOID
+ 138           	;
+ 139           	game_start_fun:
+ 140 0038 0E 24		PUSH LR
+ 141 003A 04 24		PUSH R4
+ 142 003C 05 24		PUSH R5
+ 143           		
+ 144 003E B4 5C		BL clear_lights
+ 145           	
+ 146 0040 E1 0F		LDR R1, diff_addr
+ 147 0042 10 08		LDRB R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
+ 148           		
+ 149           	
+ 150 0044 A5 60		MOV R5, #10
+ 151 0046 04 60		MOV R4, #0						;Nº DA RONDA 
+ 152           	next_round:
+ 153 0048 00 B2		MOV R0, R4						;Nº DA RONDA 
+ 154 004A 7B 5C		BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY em R0
+ 155           	
+ 156 004C 0F 5C		BL game_round
+ 157 004E 00 C0		AND R0, R0, R0
+ 158 0050 09 40		BZS game_start_return_false
+ 159           	
+ 160 0052 C4 A0		ADD R4, R4, #1					; INCREMENTA O Nº DA RONDA
+ 161           		
+ 162 0054 A9 5C		BL clear_lights
+ 163 0056 30 65		MOV R0, #WAIT_500MS
+ 164 0058 55 5C		BL wait_ticks
+ 165           			
+ 166 005A 50 BA		CMP R5, R4
+ 167 005C 01 40		BEQ game_start_return_true
+ 168           		
+ 169 005E F4 5B		B next_round
+ 170           	
+ 171           	game_start_return_true:
+ 172 0060 10 60		MOV R0, #1
+ 173 0062 01 58		B game_start_return
+ 174           	game_start_return_false:
+ 175 0064 00 60		MOV R0, #0
+ 176           	game_start_return:
+ 177 0066 05 04		POP R5
+ 178 0068 04 04		POP R4
+ 179 006A 0F 04		POP PC
+ 180           	;; END Game_Start_Fun
+ 181           	
+ 182           	
  183           	
- 184 006E 05 04		POP R5
- 185 0070 04 04		POP R4
- 186 0072 0F 04		POP PC
- 187           	
- 188           	
- 189           	
- 190           	
- 191           	
- 192           	; Rotina:    vitory_lights
- 193           	; Descricao: 
- 194           	; Entradas:  -
- 195           	; Saidas:    -
- 196           	; Efeitos:  
- 197           	vitory_lights:
- 198 0074 0E 24		PUSH LR
- 199           		
- 200 0076 31 60		MOV R1, #3
- 201           	
- 202           	vitory_loop:
- 203 0078 A0 6A		MOV R0, #ALL_GREEN_LIGHTS
- 204 007A 92 5C		BL outport_write
- 205           		
- 206 007C 20 60		MOV R0, #2
- 207 007E 45 5C		BL sleep
- 208           	
- 209 0080 64 5C		BL clear_lights
- 210 0082 91 A8		SUB R1, R1, #1
- 211 0084 01 40		BZS victory_retur
- 212 0086 F8 5B		B vitory_loop
- 213           	
- 214           	victory_retur:
- 215 0088 0F 04		POP PC
- 216           	;END
- 217           	
- 218           	; Rotina:    losing_lights
- 219           	; Descricao: 
- 220           	; Entradas:  -
- 221           	; Saidas:    -
- 222           	; Efeitos:  
- 223           	losing_lights:
- 224 008A 0E 24		PUSH LR
- 225           		
- 226 008C 31 60		MOV R1, #3
+ 184           	; Rotina:    game_round
+ 185           	; Descricao: 
+ 186           	; Entradas:  R0 -> posicoes das toupeiras
+ 187           	; Saidas:    -
+ 188           	; Efeitos:  
+ 189           	game_round:
+ 190 006C 0E 24		PUSH LR
+ 191 006E 04 24		PUSH R4
+ 192 0070 05 24		PUSH R5
+ 193 0072 06 24		PUSH R6
+ 194 0074 07 24		PUSH R7
+ 195           	
+ 196 0076 04 B0		MOV R4, R0
+ 197           	
+ 198 0078 CE 5C		BL time_get_ref					; Começa a contar o tempo da ronda
+ 199 007A 05 B0		MOV R5, R0						; Guarda o valor do contador no momento do inicio
+ 200           	
+ 201 007C 01 0E		LDR R1, diff_addr
+ 202 007E 16 08		LDRB R6, [R1]					; Valor de ciclos referncia para esta dificuldade
+ 203           	
+ 204           		
+ 205           	game_round_loop:
+ 206 0080 80 B2	    MOV R0, R5				; Metemos em R0, o valor que estava no inicio da contagem
+ 207 0082 CC 5C	    BL time_elapsed         ; Calcula diferença entre agora e R1
+ 208 0084 00 BB	    CMP R0, R6              ; Compara tempo decorrido com o desejado
+ 209 0086 0C 48	    BHS game_timeout		; Enquanto decorrido < desejado, espera
+ 210           	
+ 211           	
+ 212 0088 F1 60		MOV R1, #0x0F
+ 213 008A 62 5C		BL detect_play			; DEVOLVE A MASCARA DOS INPUTS DETETADOS
+ 214 008C 00 C0		AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
+ 215           	
+ 216 008E F8 43		BZS game_round_loop
+ 217           		
+ 218 0090 01 B2		MOV R1, R4
+ 219 0092 45 5C		BL if_mole_hit_change_color
+ 220 0094 00 C0		AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE TROCAS
+ 221           	
+ 222 0096 F4 43		BZS game_round_loop
+ 223           	
+ 224           		; HOUVE UMA TOUPEIRA QUE PASSOU A VERMELHO
+ 225           		;BL time_get_ref					; Começa a contar o tempo da ronda
+ 226           		;MOV R7, R0						; Guarda o valor do contador no momento do inicio
  227           	
- 228           	losing_loop:
- 229 008E 50 65		MOV R0, #ALL_RED_LIGHTS
- 230 0090 87 5C		BL outport_write
- 231           		
- 232 0092 20 60		MOV R0, #2
- 233 0094 3A 5C		BL sleep
- 234           	
- 235 0096 59 5C		BL clear_lights
- 236 0098 91 A8		SUB R1, R1, #1
- 237 009A 01 40		BZS losing_retur
- 238 009C F8 5B		B losing_loop
- 239           	
- 240           	losing_retur:
- 241 009E 0F 04		POP PC
- 242           	;END
- 243           	
- 244           	; Rotina:    if_mole_hit_change_color
- 245           	; Descricao: 
- 246           	; Entradas:  R0 -> mascara de hits detetada
- 247           	; Entradas:  R1 -> posicoes das toupeiras
- 248           	; Saidas:    -
- 249           	; Efeitos:  
- 250           	if_mole_hit_change_color:
- 251 00A0 0E 24		PUSH LR
- 252 00A2 04 24		PUSH R4
- 253           	
- 254 00A4 84 B0		MOV R4, R1
- 255           	
- 256 00A6 3E 5C		BL convert_moleinput_moleoutput	; FICA EM R0 o index da marretada detetada
- 257 00A8 05 B0		MOV R5, R0
- 258           	
- 259 00AA 46 5C		BL get_mole_green 				; VAI BUSCAR A MASCARA QUE REPRESENTA OS LEDS VERDES NO INDEX DA MARRETA
- 260 00AC 00 C2		AND R0, R0, R4					; VALIDA SE O BIT GREEN OBTIDO CORRESPONDE À POSICAO DA TOUPEIRA
- 261           	
- 262 00AE 02 40		BZS if_mole_hit_change_color_end
- 263           	
- 264 00B0 80 B2		MOV R0, R5
- 265 00B2 54 5C		BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERDE
- 266           	
- 267           	if_mole_hit_change_color_end:
- 268 00B4 04 04		POP R4
- 269 00B6 0F 04		POP PC
- 270           	; end_is_mole_hit
+ 228 0098 9A 5C		BL check_if_any_mole_left
+ 229 009A 00 C0		AND R0, R0, R0
+ 230           		
+ 231 009C F1 47		BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
+ 232           	
+ 233 009E 01 58		B game_return
+ 234           	game_timeout:
+ 235 00A0 00 60		MOV R0, #0
+ 236           	
+ 237           	game_return:
+ 238           	
+ 239 00A2 07 04		POP R7
+ 240 00A4 06 04		POP R6
+ 241 00A6 05 04		POP R5
+ 242 00A8 04 04		POP R4
+ 243 00AA 0F 04		POP PC
+ 244           	; END
+ 245           	
+ 246           	
+ 247           	;
+ 248           	; >> Função READ_GAME_DIFICULTY <<
+ 249           	; Tipo: - FOLHA -
+ 250           	; Parametros de entrada:
+ 251           	;	-
+ 252           	; variaveis locais:
+ 253           	;	-
+ 254           	; Parametros de saida:
+ 255           	;   R0 -> 
+ 256           	;
+ 257           	read_and_save_game_dificulty: 
+ 258 00AC 0E 24		PUSH LR
+ 259 00AE AD 5C		BL inport_read
+ 260           	
+ 261           		; Só precisamos dos 3 bits mais significativos
+ 262 00B0 02 6E		MOV R2, #0xE0
+ 263 00B2 00 C1		AND R0, R0, R2
+ 264           	
+ 265 00B4 61 0E		LDR r1, period_addr	; Carrega o endereço do array
+ 266 00B6 10 10		LDR r0, [R1, R0]	; Carrega do array a posição R0
+ 267           	
+ 268 00B8 21 0C		LDR r1, diff_addr	; Carrega o endereço da variavel
+ 269 00BA 10 28		STRB r0, [R1]		; Guarda o valor obtido do array na variável
+ 270           	
  271           	
- 272           	
- 273           	
- 274           	
- 275           	; Rotina:    show_moles_state
- 276           	; Descricao: 
- 277           	; Entradas:  R0 -> INDEX da ronda
- 278           	; Saidas:    -
- 279           	; Efeitos:  
- 280           	show_moles_state:
- 281 00B8 0E 24		PUSH LR
- 282           		
- 283 00BA 42 0C		LDR R2, moles_position_addr
- 284 00BC 23 18		LDRB R3, [R2, R0]
- 285           	
- 286 00BE 80 B1		MOV R0, R3
- 287 00C0 6F 5C		BL outport_write
- 288           	
- 289 00C2 0F 04		POP PC
- 290           	; END SHOW_MOLES_STATE
- 291           	
- 292           	
- 293           	
- 294 00C4 31 02	moles_position_addr: .word moles_position
- 295           	
- 296           	
- 297           	; Rotina:    detect play
- 298           	; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
- 299           	; Entradas:  -
- 300           	; Saidas:    -
- 301           	; Efeitos:   
- 302           	detect_play:
- 303 00C6 0E 24		PUSH LR
- 304 00C8 04 24		PUSH R4
- 305           		
- 306 00CA 43 5C		BL read_marreta 				; Lê e retorna os 4 bits de menor peso R0
- 307 00CC F1 60		MOV R1, #0x0F
- 308 00CE 02 5C		BL falling_edge_v2
- 309           	
- 310 00D0 04 04		POP R4
- 311 00D2 0F 04		POP PC
- 312           	
- 313           	;END DETECT_PLAY
- 314           	
- 315           	
- 316           	
- 317           	; Entradas:  r0 - valor lido o porto de entrada
- 318           	; 			 r1 - Mascara inicial 
- 319           	falling_edge_v2:
- 320 00D4 62 0C		LDR	 r2, last_play_addr
- 321 00D6 23 08		LDRB r3, [r2]	; VALOR EM MEMORIA
- 322           	
- 323 00D8 20 28		STRB r0, [r2]	; ATUALIZA EM MEMORIA
- 324           	
- 325 00DA 10 B0		MVN R0, R0		; INVERTE OS BITS 
- 326 00DC 80 C1		AND R0, R0, R3	
- 327           	
- 328 00DE 80 C0		AND R0, R0, R1 ; FILTRA OS 4 BITS menos significativos 
- 329 00E0 0F B7		MOV PC, LR
- 330           	
- 331           	last_play_addr:
- 332 00E2 2E 02		.word	last_play
- 333           	
+ 272 00BC 0F 04		POP PC
+ 273           	; END
+ 274 00BE A2 02	diff_addr:   		.word dificulty_time
+ 275           	
+ 276           	
+ 277           	; Rotina:    sleep
+ 278           	; Descricao: Faz um atraso de tempo de #1 em r0 e r1
+ 279           	; Entradas:  Recebe r0
+ 280           	; Saidas:    Não têm
+ 281           	; Efeitos:   Altera os registos R0 e R1
+ 282           	sleep:
+ 283           	
+ 284 00C0 01 0E		LDR r1, period_addr	; Carrega o endereço do array
+ 285 00C2 10 10		LDR r0, [R1, R0]	; Carrega do array a posição R0
+ 286           	
+ 287 00C4 00 C0		and	r0, r0, r0
+ 288 00C6 06 40		beq	sleep_end
+ 289           	sleep_outer_loop:
+ 290 00C8 E1 60		MOV	r1, #0x0E
+ 291 00CA 31 70		MOVT r1, #0x03
+ 292           	sleep_inner_loop:
+ 293 00CC 91 A8		sub	r1, r1, #1
+ 294 00CE FE 47		bne	sleep_inner_loop
+ 295 00D0 80 A8		sub	r0, r0, #1
+ 296 00D2 FA 47		bne	sleep_outer_loop
+ 297           	sleep_end:
+ 298 00D4 0F B7		MOV	pc, lr
+ 299           	
+ 300           	
+ 301           	
+ 302           	; Rotina:    vitory_lights
+ 303           	; Descricao: 
+ 304           	; Entradas:  R0  -> State. 0 -> Loss | 1 -> Victory
+ 305           	; Saidas:    -
+ 306           	; Efeitos:  Pisca os leds 3 vezes com base no parametro de entrada R0. 
+ 307           	;	Usa uma função auxiliar que permite esperar meio segundo, atraves do pico timer, antes de acender ou apagar o led
+ 308           	flashing_lights:
+ 309 00D6 0E 24		PUSH LR
+ 310 00D8 04 24		PUSH R4
+ 311           	
+ 312 00DA 34 60		MOV R4, #3
+ 313           		
+ 314 00DC 31 65		MOV R1, #WAIT_500MS
+ 315           		
+ 316 00DE 02 60		MOV R2, #LOSER_LIGHTS
+ 317 00E0 00 B9		CMP R0, R2
+ 318 00E2 02 40		BEQ loser_prep
+ 319           	
+ 320           	victory_prep:
+ 321 00E4 12 60		MOV R2, #VICTORY_LIGHTS
+ 322 00E6 01 58		B flashing_lights_loop
+ 323           	loser_prep:
+ 324 00E8 02 60		MOV R2, #LOSER_LIGHTS
+ 325           	
+ 326           	flashing_lights_loop:
+ 327 00EA A0 6A		MOV R0, #ALL_GREEN_LIGHTS	; METE TUDO A VERDE
+ 328 00EC 88 5C		BL outport_write
+ 329           		
+ 330 00EE 80 B0		MOV R0, R1			
+ 331 00F0 09 5C		BL wait_ticks
+ 332           	
+ 333 00F2 5A 5C		BL clear_lights				; APAGA OS LEDS TODOS
  334           	
- 335           	; START_UP
- 336           	; Rotina que inicializa o programa.
- 337           	start_up_interruptions:
- 338 00E4 0E 24		PUSH LR
- 339           	
- 340 00E6 5C 5C		BL	outport_write		 					; Escreve o zero no output port
- 341 00E8 00 60		MOV	r0, #INT_CS_ADDRESS & 0xFF				; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS
- 342 00EA F0 7F		MOVT	r0, #(INT_CS_ADDRESS >> 8) & 0xFF	; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS		
- 343 00EC 00 28		STRB	r0, [r0, #0]						; Faz um STOREB para ativar o sinal nWrL
- 344           	
- 345 00EE 60 B0		mrs	r0, cpsr								; Passa as flags para o R0
- 346 00F0 01 61		MOV	r1, #ENABLE_EXTINT						; Passa para R1 a mascara que ativa a flag I
- 347 00F2 80 C8		orr	r0, r0, r1								; Realiza um OR bit a bit entre R0 e R1
- 348 00F4 40 B0		msr	cpsr, r0								; Passa as novas flags atualizadas para o registo CPSR
+ 335 00F4 80 B0		MOV R0, R1			
+ 336 00F6 06 5C		BL wait_ticks
+ 337           	
+ 338 00F8 C4 A8		SUB R4, R4, #1
+ 339 00FA 01 40		BZS flashing_lights_retur
+ 340 00FC F6 5B		B flashing_lights_loop
+ 341           	
+ 342           	flashing_lights_retur:
+ 343 00FE 04 04		POP R4
+ 344 0100 0F 04		POP PC
+ 345           	;END
+ 346           	
+ 347 0102 8E 02	period_addr:  		.word period
+ 348           	
  349           	
- 350 00F6 0F 04		POP PC
- 351           	;END interruption
- 352           	
- 353           	
- 354           	
- 355           	;
- 356           	; >> Função READ_GAME_DIFICULTY <<
- 357           	; Tipo: - FOLHA -
- 358           	; Parametros de entrada:
- 359           	;	-
- 360           	; variaveis locais:
- 361           	;	-
- 362           	; Parametros de saida:
- 363           	;   R0 -> 
- 364           	;
- 365           	read_and_save_game_dificulty: 
- 366 00F8 0E 24		PUSH LR
- 367 00FA 58 5C		BL inport_read
- 368           	
- 369           		; Só precisamos dos 3 bits mais significativos
- 370 00FC 02 6E		MOV R2, #0xE0
- 371 00FE 00 C1		AND R0, R0, R2
- 372           	
- 373 0100 F1 0C		LDR r1, period_addr	; Carrega o endereço do array
- 374 0102 10 18		LDRB r0, [R1, R0]	; Carrega do array a posição R0
- 375           	
- 376 0104 E1 0C		LDR r1, diff_addr	; Carrega o endereço da variavel
- 377 0106 10 28		STRB r0, [R1]		; Guarda o valor obtido do array na variável
- 378           	
- 379           	
- 380 0108 0F 04		POP PC
- 381           	; END
- 382           	
- 383           	
- 384           	; Rotina:    sleep
- 385           	; Descricao: Faz um atraso de tempo de #1 em r0 e r1
- 386           	; Entradas:  Recebe r0
- 387           	; Saidas:    Não têm
- 388           	; Efeitos:   Altera os registos R0 e R1
- 389           	sleep:
+ 350           	; Rotina:    delay_ticks
+ 351           	; Descricao: 
+ 352           	; Entradas:  R0 -> Recebe o número de ciclos que pretende esperar
+ 353           	; Saidas:    -
+ 354           	; Efeitos:  Espera meio segundo
+ 355           	wait_ticks:
+ 356 0104 0E 24	    PUSH LR
+ 357 0106 01 24	    PUSH R1
+ 358 0108 02 24	    PUSH R2
+ 359           	
+ 360 010A 02 B0	    MOV R2, R0              ; Guarda o tempo desejado
+ 361 010C 84 5C	    BL time_get_ref
+ 362 010E 01 B0	    MOV R1, R0              ; R1 = tempo de referência inicial
+ 363           	
+ 364           	wait_loop:
+ 365 0110 80 B0	    MOV R0, R1
+ 366 0112 84 5C	    BL time_elapsed         ; Calcula diferença entre agora e R1
+ 367 0114 00 B9	    CMP R0, R2              ; Compara tempo decorrido com o desejado
+ 368 0116 FC 57	    BLT wait_loop          ; Enquanto decorrido < desejado, espera
+ 369           	
+ 370 0118 02 04	    POP R2
+ 371 011A 01 04	    POP R1
+ 372 011C 0F 04	    POP PC
+ 373           	
+ 374           	
+ 375           	; Rotina:    if_mole_hit_change_color
+ 376           	; Descricao: 
+ 377           	; Entradas:  R0 -> mascara de hits detetada
+ 378           	; Entradas:  R1 -> posicoes das toupeiras
+ 379           	; Saidas:    -
+ 380           	; Efeitos:  
+ 381           	if_mole_hit_change_color:
+ 382 011E 0E 24		PUSH LR
+ 383 0120 04 24		PUSH R4
+ 384 0122 05 24		PUSH R5
+ 385           	
+ 386 0124 84 B0		MOV R4, R1
+ 387           	
+ 388 0126 2D 5C		BL convert_moleinput_moleoutput	; FICA EM R0 o index da marretada detetada
+ 389 0128 05 B0		MOV R5, R0
  390           	
- 391 010A A1 0C		LDR r1, period_addr	; Carrega o endereço do array
- 392 010C 10 18		LDRB r0, [R1, R0]	; Carrega do array a posição R0
+ 391 012A 35 5C		BL get_mole_green 				; VAI BUSCAR A MASCARA QUE REPRESENTA OS LEDS VERDES NO INDEX DA MARRETA
+ 392 012C 00 C2		AND R0, R0, R4					; VALIDA SE O BIT GREEN OBTIDO CORRESPONDE À POSICAO DA TOUPEIRA
  393           	
- 394 010E 00 C0		and	r0, r0, r0
- 395 0110 06 40		beq	sleep_end
- 396           	sleep_outer_loop:
- 397 0112 E1 63		MOV	r1, #0x3E
- 398 0114 31 70		MOVT r1, #0x03
- 399           	sleep_inner_loop:
- 400 0116 91 A8		sub	r1, r1, #1
- 401 0118 FE 47		bne	sleep_inner_loop
- 402 011A 80 A8		sub	r0, r0, #1
- 403 011C FA 47		bne	sleep_outer_loop
- 404           	sleep_end:
- 405 011E 0F B7		MOV	pc, lr
- 406           	
+ 394 012E 03 40		BZS mole_hit_return_false
+ 395           	
+ 396 0130 80 B2		MOV R0, R5
+ 397 0132 43 5C		BL turn_mole_red				; APAGA O LED VERDE E ACENDE O RESPETIVO LED VERMERLHO
+ 398 0134 02 58		B mole_hit_return_true
+ 399           	
+ 400           	mole_hit_return_false:
+ 401 0136 00 60		MOV R0, #0
+ 402 0138 01 58		B mole_hit_return
+ 403           	mole_hit_return_true:
+ 404 013A 10 60		MOV R0, #1
+ 405           	
+ 406           	mole_hit_return:
  407           	
- 408 0120 20 02	period_addr:  		.word period
- 409 0122 2C 02	diff_addr:   		.word dificulty_time
- 410           	
- 411           	
+ 408 013C 05 04		POP R5
+ 409 013E 04 04		POP R4
+ 410 0140 0F 04		POP PC
+ 411           	; end_is_mole_hit
  412           	
- 413           	;
- 414           	; >> Função CONVERT_MOLEINPUT_MOLEOUTPUT <<
- 415           	; Tipo: - FOLHA -
- 416           	; Parametros de entrada:
- 417           	;   uint4_t num_ -------> r0
- 418           	;
- 419           	; variaveis locais:
- 420           	;   uint8_t contador  --> r2
- 421           	;
- 422           	; Parametros de saida:
- 423           	;   uint8_t ---------> r0
- 424           	;
- 425           	convert_moleinput_moleoutput:
- 426 0124 01 60		MOV R1, #0
- 427           	convert_while:
- 428           	
- 429 0126 80 E8	    LSR r0, r0, #1          
- 430 0128 02 40		BZS convert_end
- 431 012A 91 A0	    ADD r1, r1, #1          ; m => contador; m--
- 432 012C FC 5B	    B	convert_while
+ 413           	
+ 414           	
+ 415           	
+ 416           	; Rotina:    show_moles_state
+ 417           	; Descricao: 
+ 418           	; Entradas:  R0 -> INDEX da ronda
+ 419           	; Saidas:    -
+ 420           	; Efeitos:  
+ 421           	show_moles_state:
+ 422 0142 0E 24		PUSH LR
+ 423           		
+ 424 0144 42 0C		LDR R2, moles_position_addr
+ 425 0146 23 18		LDRB R3, [R2, R0]
+ 426           	
+ 427 0148 80 B1		MOV R0, R3
+ 428 014A 59 5C		BL outport_write
+ 429           	
+ 430 014C 0F 04		POP PC
+ 431           	; END SHOW_MOLES_STATE
+ 432           	
  433           	
- 434           	convert_end:
- 435 012E 80 B0		MOV R0, R1
- 436 0130 0F B7		MOV PC, LR
- 437           	; END CONVERT
- 438           	
- 439           	
- 440           	; GETMOLE_RED
- 441           	; Retorna a posição do LED vermelho do output port com base na posição como parametro.  
- 442           	; R0 -> Nº da toupeira [4bits]
- 443           	get_mole_red:
- 444 0132 51 0C		LDR R1, moles_red_addr
- 445 0134 10 18		LDRB R0, [R1, R0]
- 446           	
- 447 0136 0F B7		MOV PC, LR
- 448           	
- 449           	
- 450           	; GETMOLE_GREEN
- 451           	; Retorna a posição do LED verde do output port com base na posição como parametro.  
- 452           	; R0 -> Nº da toupeira [4bits]
- 453           	get_mole_green:
- 454 0138 31 0C		LDR R1, moles_green_addr
- 455 013A 10 18		LDRB R0, [R1, R0]
+ 434           	
+ 435 014E A7 02	moles_position_addr: .word moles_position
+ 436           	
+ 437           	
+ 438           	; Rotina:    detect play
+ 439           	; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
+ 440           	; Entradas:  -
+ 441           	; Saidas:    -
+ 442           	; Efeitos:   
+ 443           	detect_play:
+ 444 0150 0E 24		PUSH LR
+ 445 0152 04 24		PUSH R4
+ 446           		
+ 447 0154 2D 5C		BL read_marreta 				; Lê e retorna os 4 bits de menor peso R0
+ 448 0156 F1 60		MOV R1, #0x0F
+ 449 0158 02 5C		BL falling_edge_v2
+ 450           	
+ 451 015A 04 04		POP R4
+ 452 015C 0F 04		POP PC
+ 453           	
+ 454           	;END DETECT_PLAY
+ 455           	
  456           	
- 457 013C 0F B7		MOV PC, LR
- 458           	
- 459           	;END
- 460           	
- 461           	
- 462           	
+ 457           	
+ 458           	; Entradas:  r0 - valor lido o porto de entrada
+ 459           	; 			 r1 - Mascara inicial 
+ 460           	falling_edge_v2:
+ 461 015E 62 0C		LDR	 r2, last_play_addr
+ 462 0160 23 08		LDRB r3, [r2]	; VALOR EM MEMORIA
  463           	
- 464 013E 14 02	moles_red_addr:  .word moles_red
- 465 0140 18 02	moles_green_addr:  .word moles_green
- 466           	
- 467           	;
- 468           	; >> Função GAME START SIGNAL << Coloca todos os leds a laranja
- 469           	; Tipo: - FOLHA -
- 470           	; Parametros de entrada:
- 471           	;	-
- 472           	; variaveis locais:
- 473           	;	-
- 474           	; Parametros de saida:
- 475           	;   - 
- 476           	;
- 477           	game_start_signal: 
- 478 0142 0E 24		PUSH LR
- 479 0144 F0 6F		MOV R0, #ALL_YELLOW_LIGHTS ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
+ 464 0162 20 28		STRB r0, [r2]	; ATUALIZA EM MEMORIA
+ 465           	
+ 466 0164 10 B0		MVN R0, R0		; INVERTE OS BITS 
+ 467 0166 80 C1		AND R0, R0, R3	
+ 468           	
+ 469 0168 80 C0		AND R0, R0, R1 ; FILTRA OS 4 BITS menos significativos 
+ 470 016A 0F B7		MOV PC, LR
+ 471           	
+ 472           	last_play_addr:
+ 473 016C A4 02		.word	last_play
+ 474           	
+ 475           	
+ 476           	; START_UP
+ 477           	; Rotina que inicializa o programa.
+ 478           	start_up_interruptions:
+ 479 016E 0E 24		PUSH LR
  480           	
- 481 0146 1F 5C		BL outport_set_bits
- 482           	
- 483 0148 0F 04		POP PC
- 484           	; END
+ 481 0170 46 5C		BL	outport_write		 					; Escreve o zero no output port
+ 482 0172 00 60		MOV	r0, #INT_CS_ADDRESS & 0xFF				; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS
+ 483 0174 F0 7F		MOVT	r0, #(INT_CS_ADDRESS >> 8) & 0xFF	; CARREGA O ENDEREÇO DE MEMÓRIA DO INT_CS		
+ 484 0176 00 28		STRB	r0, [r0, #0]						; Faz um STOREB para ativar o sinal nWrL
  485           	
- 486           	;
- 487           	; >> Função CLEAR LIGHTS << Desliga todos os leds
- 488           	; Tipo: - NAO FOLHA -
- 489           	; Parametros de entrada:
- 490           	;	-
- 491           	; variaveis locais:
- 492           	;	-
- 493           	; Parametros de saida:
- 494           	;   - 
+ 486 0178 60 B0		mrs	r0, cpsr								; Passa as flags para o R0
+ 487 017A 01 61		MOV	r1, #ENABLE_EXTINT						; Passa para R1 a mascara que ativa a flag I
+ 488 017C 80 C8		orr	r0, r0, r1								; Realiza um OR bit a bit entre R0 e R1
+ 489 017E 40 B0		msr	cpsr, r0								; Passa as novas flags atualizadas para o registo CPSR
+ 490           	
+ 491 0180 0F 04		POP PC
+ 492           	;END interruption
+ 493           	
+ 494           	
  495           	;
- 496           	clear_lights: 
- 497 014A 0E 24		PUSH LR
- 498 014C 00 60		MOV R0, #NO_LIGHTS 
- 499           	
- 500 014E 28 5C		BL outport_write
- 501           	
- 502 0150 0F 04		POP PC
- 503           	; END
- 504           	
- 505           	;
- 506           	; >> Função READ_MARRETA << Lê os 4bits menos significativos do inputport
- 507           	; Tipo: - NAO FOLHA -
- 508           	; Parametros de entrada:
- 509           	;	-
- 510           	; variaveis locais:
- 511           	;	-
- 512           	; Parametros de saida:
- 513           	;   - 
- 514           	;
- 515           	read_marreta:
- 516 0152 0E 24		PUSH LR
- 517           	
- 518 0154 F1 60		MOV R1, #0x0F
- 519 0156 2A 5C		BL inport_read
- 520 0158 80 C0		AND R0, R0, R1
+ 496           	; >> Função CONVERT_MOLEINPUT_MOLEOUTPUT <<
+ 497           	; Tipo: - FOLHA -
+ 498           	; Parametros de entrada:
+ 499           	;   uint4_t num_ -------> r0
+ 500           	;
+ 501           	; variaveis locais:
+ 502           	;   uint8_t contador  --> r2
+ 503           	;
+ 504           	; Parametros de saida:
+ 505           	;   uint8_t ---------> r0
+ 506           	;
+ 507           	convert_moleinput_moleoutput:
+ 508 0182 01 60		MOV R1, #0
+ 509           	convert_while:
+ 510           	
+ 511 0184 80 E8	    LSR r0, r0, #1          
+ 512 0186 02 40		BZS convert_end
+ 513 0188 91 A0	    ADD r1, r1, #1          ; m => contador; m--
+ 514 018A FC 5B	    B	convert_while
+ 515           	
+ 516           	convert_end:
+ 517 018C 80 B0		MOV R0, R1
+ 518 018E 0F B7		MOV PC, LR
+ 519           	; END CONVERT
+ 520           	
  521           	
- 522 015A 0F 04		POP PC
- 523           	
- 524           	;END READ_MARRETA
- 525           	
- 526           	
- 527           	
- 528           	; Rotina:    turn_mole_red
- 529           	; Descricao: 
- 530           	; Entradas:  R0 -> INDEX da toupeira
- 531           	; Saidas:    -
- 532           	; Efeitos:   
- 533           	turn_mole_red:
- 534 015C 0E 24		PUSH LR
- 535 015E 04 24		PUSH R4
- 536           	
- 537 0160 04 B0		MOV R4, R0
- 538 0162 EA 5F		BL get_mole_green 
- 539           		
- 540 0164 16 5C		BL outport_clr_bits			; LIMPA O BIT QUE TORNA O LED VERDE NA TOUPEIRA 
- 541           	
- 542 0166 00 B2		MOV R0, R4
- 543 0168 E4 5F		BL get_mole_red 
+ 522           	; GETMOLE_RED
+ 523           	; Retorna a posição do LED vermelho do output port com base na posição como parametro.  
+ 524           	; R0 -> Nº da toupeira [4bits]
+ 525           	get_mole_red:
+ 526 0190 51 0C		LDR R1, moles_red_addr
+ 527 0192 10 18		LDRB R0, [R1, R0]
+ 528           	
+ 529 0194 0F B7		MOV PC, LR
+ 530           	
+ 531           	
+ 532           	; GETMOLE_GREEN
+ 533           	; Retorna a posição do LED verde do output port com base na posição como parametro.  
+ 534           	; R0 -> Nº da toupeira [4bits]
+ 535           	get_mole_green:
+ 536 0196 31 0C		LDR R1, moles_green_addr
+ 537 0198 10 18		LDRB R0, [R1, R0]
+ 538           	
+ 539 019A 0F B7		MOV PC, LR
+ 540           	
+ 541           	;END
+ 542           	
+ 543           	
  544           	
- 545 016A 0D 5C		BL outport_set_bits			; ATIVA O BIT QUE TORNA O LED VERMELHO NA TOUPEIRA 
- 546           	
- 547 016C 04 04		POP R4
- 548 016E 0F 04		POP PC
- 549           	;END TURN_MOLE_RED
- 550           	
- 551           	
- 552           	; Rotina:    check_if_any_mole_left
- 553           	; Descricao: 
- 554           	; Entradas: 
- 555           	; Saidas:    -
- 556           	; Efeitos:  
- 557           	check_if_any_mole_left:
- 558 0170 21 0E		LDR R1, out_port_img_addr	; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
- 559 0172 11 08		LDRB R1, [R1]				; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
- 560           	
- 561 0174 A2 6A		MOV R2, #ALL_GREEN_LIGHTS	; MASCARA QUE CORRESPONDE A TODAS AS POSIÇÕES POSSIVEIS DAS TOUPEIRAS VIVAS
- 562 0176 10 C1		AND R0, R1, R2
- 563           	
- 564 0178 0F B7		MOV PC, LR
- 565           	; end check
- 566           	
+ 545           	
+ 546 019C 82 02	moles_red_addr:  .word moles_red
+ 547 019E 86 02	moles_green_addr:  .word moles_green
+ 548           	
+ 549           	;
+ 550           	; >> Função GAME START SIGNAL << Coloca todos os leds a laranja
+ 551           	; Tipo: - FOLHA -
+ 552           	; Parametros de entrada:
+ 553           	;	-
+ 554           	; variaveis locais:
+ 555           	;	-
+ 556           	; Parametros de saida:
+ 557           	;   - 
+ 558           	;
+ 559           	game_start_signal: 
+ 560 01A0 0E 24		PUSH LR
+ 561 01A2 F0 6F		MOV R0, #ALL_YELLOW_LIGHTS ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
+ 562           	
+ 563 01A4 1F 5C		BL outport_set_bits
+ 564           	
+ 565 01A6 0F 04		POP PC
+ 566           	; END
  567           	
- 568           	; Rotina:    check_mole_position
- 569           	; Descricao: 
- 570           	; Entradas:  R0 -> INDEX da marretada
- 571           	; Saidas:    -
- 572           	; Efeitos:   
- 573           	check_mole_position:
- 574 017A 0E 24		PUSH LR
- 575           		
- 576           		
- 577 017C DD 5F		BL get_mole_green 
- 578           	
- 579 017E B1 0D		LDR R1, out_port_img_addr
- 580 0180 11 08		LDRB R1, [R1]
+ 568           	;
+ 569           	; >> Função CLEAR LIGHTS << Desliga todos os leds
+ 570           	; Tipo: - NAO FOLHA -
+ 571           	; Parametros de entrada:
+ 572           	;	-
+ 573           	; variaveis locais:
+ 574           	;	-
+ 575           	; Parametros de saida:
+ 576           	;   - 
+ 577           	;
+ 578           	clear_lights: 
+ 579 01A8 0E 24		PUSH LR
+ 580 01AA 00 60		MOV R0, #NO_LIGHTS 
  581           	
- 582 0182 80 C0		AND R0, R0, R1		; VERIFICA SE OS MESMOS BITS DO OUTPUT PORT E DA GREEN POSISTION DA TOUPEIRA SAO IGUAIS
+ 582 01AC 28 5C		BL outport_write
  583           	
- 584           	check_mole_return:
- 585           	
- 586 0184 0F 04		POP PC
- 587           	;END CHECK_MOLE_POSITION
- 588           	
- 589           	
- 590           	
- 591           	
- 592           	
- 593           	
- 594           	;;						;;
- 595           	;; 		PORTS API 		;;
- 596           	;; 						;;
- 597           	
- 598           	; OUTPORT_SET_BITS
- 599           	; Introduz os BITS ao valor já no outputport através de uma mascara
- 600           	; R0 -> é a mascara que será aplicada ao valor já existente no output-port
- 601           	;
- 602           	outport_set_bits:
- 603 0186 0E 24	    PUSH LR
- 604           	    
- 605 0188 61 0D	    LDR r1, out_port_img_addr
- 606 018A 11 08	    LDRB r1, [r1]
+ 584 01AE 0F 04		POP PC
+ 585           	; END
+ 586           	
+ 587           	;
+ 588           	; >> Função READ_MARRETA << Lê os 4bits menos significativos do inputport
+ 589           	; Tipo: - NAO FOLHA -
+ 590           	; Parametros de entrada:
+ 591           	;	-
+ 592           	; variaveis locais:
+ 593           	;	-
+ 594           	; Parametros de saida:
+ 595           	;   - 
+ 596           	;
+ 597           	read_marreta:
+ 598 01B0 0E 24		PUSH LR
+ 599           	
+ 600 01B2 F1 60		MOV R1, #0x0F
+ 601 01B4 2A 5C		BL inport_read
+ 602 01B6 80 C0		AND R0, R0, R1
+ 603           	
+ 604 01B8 0F 04		POP PC
+ 605           	
+ 606           	;END READ_MARRETA
  607           	
- 608 018C 80 C8	    ORR r0, r0, r1
+ 608           	
  609           	
- 610 018E 08 5C	    BL outport_write
- 611           	    
- 612 0190 0F 04	    POP PC
- 613           	
- 614           	; OUTPORT_CLR_BITS
- 615           	; Limpa os BITS do valor já no outputport através de uma mascara
- 616           	; R0 -> é a mascara que será aplicada ao valor já existente no output-port
- 617           	;
- 618           	outport_clr_bits:
- 619 0192 0E 24	    PUSH LR
- 620           	    
- 621 0194 01 0D	    LDR r1, out_port_img_addr
- 622 0196 11 08	    LDRB r1, [r1]
+ 610           	; Rotina:    turn_mole_red
+ 611           	; Descricao: 
+ 612           	; Entradas:  R0 -> INDEX da toupeira
+ 613           	; Saidas:    -
+ 614           	; Efeitos:   
+ 615           	turn_mole_red:
+ 616 01BA 0E 24		PUSH LR
+ 617 01BC 04 24		PUSH R4
+ 618           	
+ 619 01BE 04 B0		MOV R4, R0
+ 620 01C0 EA 5F		BL get_mole_green 
+ 621           		
+ 622 01C2 16 5C		BL outport_clr_bits			; LIMPA O BIT QUE TORNA O LED VERDE NA TOUPEIRA 
  623           	
- 624 0198 10 B0	    MVN r0, r0
- 625 019A 80 C0	    AND r0, r0, r1
+ 624 01C4 00 B2		MOV R0, R4
+ 625 01C6 E4 5F		BL get_mole_red 
  626           	
- 627 019C 01 5C	    BL outport_write
- 628           	    
- 629 019E 0F 04	    POP PC
- 630           	
- 631           	
- 632           	; Rotina:    outport_write
- 633           	; Descricao: Escreve num porto de saida a 8 bits o valor passado como argumento.
- 634           	;            Interface exemplo: void outport_write( uint8_t value );
- 635           	; Entradas:  r0 - valor a escrever no porto de saida
- 636           	; Saidas:    -
- 637           	; Efeitos:   r1 - guarda o endereco do porto alvo da escrita
- 638           	outport_write:
- 639 01A0 01 6C		MOV	 r1, #OUTPORT_ADDRESS & 0xFF
- 640 01A2 F1 7F		MOVT r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
- 641 01A4 10 28		STRB r0, [r1, #0]
+ 627 01C8 0D 5C		BL outport_set_bits			; ATIVA O BIT QUE TORNA O LED VERMELHO NA TOUPEIRA 
+ 628           	
+ 629 01CA 04 04		POP R4
+ 630 01CC 0F 04		POP PC
+ 631           	;END TURN_MOLE_RED
+ 632           	
+ 633           	
+ 634           	; Rotina:    check_if_any_mole_left
+ 635           	; Descricao: 
+ 636           	; Entradas: 
+ 637           	; Saidas:    -
+ 638           	; Efeitos:  
+ 639           	check_if_any_mole_left:
+ 640 01CE 21 0E		LDR R1, out_port_img_addr	; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
+ 641 01D0 11 08		LDRB R1, [R1]				; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
  642           	
- 643           		; É necessário guardar o ultimo valor escrito no output port para conseguirmos modificar o ultimo valor com
- 644           		; uma mascara
+ 643 01D2 A2 6A		MOV R2, #ALL_GREEN_LIGHTS	; MASCARA QUE CORRESPONDE A TODAS AS POSIÇÕES POSSIVEIS DAS TOUPEIRAS VIVAS
+ 644 01D4 10 C1		AND R0, R1, R2
  645           	
- 646 01A6 71 0C	    LDR r1, out_port_img_addr    
- 647 01A8 10 28	    STRB r0, [r1, #0]
+ 646 01D6 0F B7		MOV PC, LR
+ 647           	; end check
  648           	
- 649 01AA 0F B7		MOV	pc, lr
- 650           	
- 651           	; Rotina:    INPORT_READ
- 652           	; Descricao: lê do porto de saida os 8 bits.
- 653           	;            Interface exemplo: uint8_t outport_write();
- 654           	; Entradas:   - 
- 655           	; Saidas:    r0 - valor lido do porto de entrada
- 656           	
- 657           	inport_read:
- 658 01AC 20 0C	    LDR r0, input_port_addr
- 659 01AE 00 08	    LDRB r0, [r0]
- 660 01B0 0F B7	    MOV pc, lr
- 661           	
- 662 01B2 B0 FF	input_port_addr:	.word INPUTPORT_ADDR
- 663 01B4 C0 FF	out_port_addr:		.word OUTPORT_ADDRESS
- 664 01B6 2D 02	out_port_img_addr:  .word outport_img
+ 649           	
+ 650           	; Rotina:    check_mole_position
+ 651           	; Descricao: 
+ 652           	; Entradas:  R0 -> INDEX da marretada
+ 653           	; Saidas:    -
+ 654           	; Efeitos:   
+ 655           	check_mole_position:
+ 656 01D8 0E 24		PUSH LR
+ 657           		
+ 658           		
+ 659 01DA DD 5F		BL get_mole_green 
+ 660           	
+ 661 01DC B1 0D		LDR R1, out_port_img_addr
+ 662 01DE 11 08		LDRB R1, [R1]
+ 663           	
+ 664 01E0 80 C0		AND R0, R0, R1		; VERIFICA SE OS MESMOS BITS DO OUTPUT PORT E DA GREEN POSISTION DA TOUPEIRA SAO IGUAIS
  665           	
- 666           	
+ 666           	check_mole_return:
  667           	
- 668           	;;									;;
- 669           	;; 			PICO TIMER API 			;;
- 670           	;; 									;;
+ 668 01E2 0F 04		POP PC
+ 669           	;END CHECK_MOLE_POSITION
+ 670           	
  671           	
  672           	
- 673           	/************************************************************************************
- 674           	 * LIB time
- 675           	 ************************************************************************************/
- 676           	; Rotina:    time_get_ref
- 677           	; Descricao: Obtém o tempo de referência (sysclk atual) para servir de referência à contagem de um tempo (implementar um relógio)
- 678           	; Entradas:  void
- 679           	; Saidas:    R0 - valor atual do sysclk (16 bits)
- 680           	; Efeitos:   *** Para completar ***
- 681           	time_get_ref:
- 682           		; Completar
- 683           	
- 684           	; Rotina:    time_elapsed
- 685           	; Descricao: Retorna o número de ticks passados desde o tempo de referência
- 686           	; Entradas:  R0 - tempo de referência (quando se iniciou a contagem de tempo)
- 687           	; Saidas:    R0 - número de ticks passados desde tempo de referência (now-ref : de notar que o resultado da diferença continua a ser válido se now<ref)
- 688           	; Efeitos:   *** Para completar ***
- 689           	time_elapsed:
- 690           		; Completar
+ 673           	
+ 674           	
+ 675           	
+ 676           	;;						;;
+ 677           	;; 		PORTS API 		;;
+ 678           	;; 						;;
+ 679           	
+ 680           	; OUTPORT_SET_BITS
+ 681           	; Introduz os BITS ao valor já no outputport através de uma mascara
+ 682           	; R0 -> é a mascara que será aplicada ao valor já existente no output-port
+ 683           	;
+ 684           	outport_set_bits:
+ 685 01E4 0E 24	    PUSH LR
+ 686           	    
+ 687 01E6 61 0D	    LDR r1, out_port_img_addr
+ 688 01E8 11 08	    LDRB r1, [r1]
+ 689           	
+ 690 01EA 80 C8	    ORR r0, r0, r1
  691           	
- 692           	/************************************************************************************
- 693           	 * HAL sys_clk
- 694           	 ************************************************************************************/
- 695           	; Rotina:    isr
- 696           	; Descricao: Incrementa o valor da variável global sysclk.
- 697           	; Entradas:  -
- 698           	; Saidas:    -
- 699           	; Efeitos:   *** Para completar ***
- 700           	isr:
- 701 01B8 01 24		PUSH	r1
- 702 01BA 00 24		PUSH	r0
- 703 01BC 00 60		MOV		r0, #INT_CS_ADDRESS & 0xFF
- 704 01BE F0 7F		MOVT	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
- 705 01C0 02 28		STRB	r2, [r0, #0]
- 706 01C2 F0 0C		LDR		r0, SYSCLK_ADDR
- 707 01C4 01 08		LDRB	r1, [r0, #0]
- 708 01C6 91 A0		ADD		r1, r1, #1
- 709 01C8 01 28		STRB	r1, [r0, #0]
- 710 01CA 00 04		POP		r0
- 711 01CC 01 04		POP		r1
- 712 01CE 20 B0		MOVS	pc, lr
+ 692 01EC 08 5C	    BL outport_write
+ 693           	    
+ 694 01EE 0F 04	    POP PC
+ 695           	
+ 696           	; OUTPORT_CLR_BITS
+ 697           	; Limpa os BITS do valor já no outputport através de uma mascara
+ 698           	; R0 -> é a mascara que será aplicada ao valor já existente no output-port
+ 699           	;
+ 700           	outport_clr_bits:
+ 701 01F0 0E 24	    PUSH LR
+ 702           	    
+ 703 01F2 01 0D	    LDR r1, out_port_img_addr
+ 704 01F4 11 08	    LDRB r1, [r1]
+ 705           	
+ 706 01F6 10 B0	    MVN r0, r0
+ 707 01F8 80 C0	    AND r0, r0, r1
+ 708           	
+ 709 01FA 01 5C	    BL outport_write
+ 710           	    
+ 711 01FC 0F 04	    POP PC
+ 712           	
  713           	
- 714           	
- 715           	; Rotina:    sysclk_init
- 716           	; Descricao: Inicia uma nova contagem no periferico pTC com o intervalo de
- 717           	;            contagem recebido em R0, em ticks, limpando eventuais pedidos de
- 718           	;            interrupção pendentes e iniciando com o valor zero a variavel
- 719           	;            global sysclk.
- 720           	;            Interface exemplo: void sysclk_init( uint8_t interval );
- 721           	; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
- 722           	; Saidas:    -
- 723           	; Efeitos:   Inicia a contagem no periférico a partir do valor zero, limpando
- 724           	;            eventuais pedidos de interrupção pendentes e iniciando com o
- 725           	;            valor zero a variavel global sysclk
- 726           	sysclk_init:
- 727 01D0 0E 24		PUSH	lr
- 728 01D2 71 0C		LDR		r1, SYSCLK_ADDR
- 729 01D4 02 60		MOV		r2, #0
- 730 01D6 12 20		STR 	r2, [r1]
- 731 01D8 05 5C		BL		ptc_init
- 732 01DA 0F 04		POP		pc
- 733           		
- 734           	; Rotina:    sysclk_get_ticks
- 735           	; Descricao: Devolve o valor corrente da variável global sysclk.
- 736           	;            Interface exemplo: uint16_t sysclk_get_ticks ( );
- 737           	; Entradas:  -
- 738           	; Saidas:    *** Para completar ***
- 739           	; Efeitos:   -
- 740           	sysclk_get_ticks:
- 741 01DC 20 0C		LDR		r0, SYSCLK_ADDR
- 742 01DE 00 00		LDR		r0, [r0]
- 743 01E0 0F B7		MOV		pc, lr
- 744           	
- 745           	SYSCLK_ADDR:
- 746 01E2 2F 02		.word	sysclk
+ 714           	; Rotina:    outport_write
+ 715           	; Descricao: Escreve num porto de saida a 8 bits o valor passado como argumento.
+ 716           	;            Interface exemplo: void outport_write( uint8_t value );
+ 717           	; Entradas:  r0 - valor a escrever no porto de saida
+ 718           	; Saidas:    -
+ 719           	; Efeitos:   r1 - guarda o endereco do porto alvo da escrita
+ 720           	outport_write:
+ 721 01FE 01 6C		MOV	 r1, #OUTPORT_ADDRESS & 0xFF
+ 722 0200 F1 7F		MOVT r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+ 723 0202 10 28		STRB r0, [r1, #0]
+ 724           	
+ 725           		; É necessário guardar o ultimo valor escrito no output port para conseguirmos modificar o ultimo valor com
+ 726           		; uma mascara
+ 727           	
+ 728 0204 71 0C	    LDR r1, out_port_img_addr    
+ 729 0206 10 28	    STRB r0, [r1, #0]
+ 730           	
+ 731 0208 0F B7		MOV	pc, lr
+ 732           	
+ 733           	; Rotina:    INPORT_READ
+ 734           	; Descricao: lê do porto de saida os 8 bits.
+ 735           	;            Interface exemplo: uint8_t outport_write();
+ 736           	; Entradas:   - 
+ 737           	; Saidas:    r0 - valor lido do porto de entrada
+ 738           	
+ 739           	inport_read:
+ 740 020A 20 0C	    LDR r0, input_port_addr
+ 741 020C 00 08	    LDRB r0, [r0]
+ 742 020E 0F B7	    MOV pc, lr
+ 743           	
+ 744 0210 B0 FF	input_port_addr:	.word INPUTPORT_ADDR
+ 745 0212 C0 FF	out_port_addr:		.word OUTPORT_ADDRESS
+ 746 0214 A3 02	out_port_img_addr:  .word outport_img
  747           	
  748           	
- 749           	/************************************************************************************
- 750           	 * Gestor de periférico para o Pico Timer/Counter (pTC): HAL pTC
- 751           	 ************************************************************************************/
- 752           	; Rotina:    ptc_init
- 753           	; Descricao: Faz a iniciacao do periférico pTC, habilitando o seu funcionamento
- 754           	;            em modo contínuo e com o intervalo de contagem recebido em R0, em
- 755           	;            ticks.
- 756           	;            Interface exemplo: void ptc_init( uint8_t interval );
- 757           	; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
- 758           	; Saidas:    -
- 759           	; Efeitos:   Inicia a contagem no periferico a partir do valor zero, limpando
- 760           	;            o pedido de interrupcao eventualmente pendente.
- 761           	ptc_init:
- 762 01E4 0E 24	    PUSH    lr
- 763 01E6 00 24		PUSH	r0
- 764 01E8 0A 5C		BL 		ptc_stop
- 765 01EA 00 04		POP		r0
- 766 01EC 21 0D		LDR		r1, PTC_ADDR
- 767 01EE 90 28		STRB	r0, [r1, #PTC_TMR_ADDRESS]
- 768 01F0 0D 5C	    BL  	ptc_clr_irq
- 769 01F2 01 5C		BL 		ptc_start
- 770 01F4 0F 04		POP pc
- 771           	
- 772           	
- 773           	; Rotina:    ptc_start
- 774           	; Descricao: Habilita a contagem no periferico pTC.
- 775           	;            Interface exemplo: void ptc_start( );
- 776           	; Entradas:  -
- 777           	; Saidas:    -
- 778           	; Efeitos:   -
- 779           	ptc_start:
- 780 01F6 D0 0C		LDR		r0, PTC_ADDR
- 781 01F8 01 60		MOV		r1, #PTC_CMD_START
- 782 01FA 01 29		STRB	r1, [r0, #PTC_TC_ADDRESS]
- 783 01FC 0F B7		MOV		pc, lr
+ 749           	
+ 750           	;;									;;
+ 751           	;; 			PICO TIMER API 			;;
+ 752           	;; 									;;
+ 753           	
+ 754           	
+ 755           	/************************************************************************************
+ 756           	 * LIB time
+ 757           	 ************************************************************************************/
+ 758           	; Rotina:    time_get_ref
+ 759           	; Descricao: Obtém o tempo de referência (sysclk atual) para servir de referência à contagem de um tempo (implementar um relógio)
+ 760           	; Entradas:  void
+ 761           	; Saidas:    R0 - valor atual do sysclk (16 bits)
+ 762           	; Efeitos:   *** Para completar ***
+ 763           	time_get_ref:
+ 764 0216 0E 04		POP LR
+ 765           	
+ 766 0218 18 5C		BL sysclk_get_ticks
+ 767           	
+ 768 021A 0F 04		POP PC
+ 769           	;time_get_ref
+ 770           	
+ 771           	; Rotina:    time_elapsed
+ 772           	; Descricao: Retorna o número de ticks passados desde o tempo de referência
+ 773           	; Entradas:  R0 - tempo de referência (quando se iniciou a contagem de tempo)
+ 774           	; Saidas:    R0 - número de ticks passados desde tempo de referência (now-ref : de notar que o resultado da diferença continua a ser válido se now<ref)
+ 775           	; Efeitos:   *** Para completar ***
+ 776           	time_elapsed:
+ 777 021C 0E 04		POP LR
+ 778           	
+ 779 021E 01 B0		MOV R1, R0
+ 780           	
+ 781 0220 14 5C		BL sysclk_get_ticks		; Retorna o valor atual do sysclock
+ 782           	
+ 783 0222 80 88		SUB R0, R0, R1			; Calcula a diferença entre o tempo atual (sysclk) e o valor referncia (sysclk antigo)
  784           	
- 785           	; Rotina:    ptc_stop
- 786           	; Descricao: Para a contagem no periferico pTC.
- 787           	;            Interface exemplo: void ptc_stop( );
- 788           	; Entradas:  -
- 789           	; Saidas:    -
- 790           	; Efeitos:   O valor do registo TC do periferico e colocado a zero.
- 791           	ptc_stop:
- 792 01FE 90 0C		LDR		r0, PTC_ADDR
- 793 0200 11 60		MOV		r1, #PTC_CMD_STOP
- 794 0202 01 29		STRB	r1, [r0, #PTC_TC_ADDRESS]
- 795 0204 0F B7		MOV		pc, lr
- 796           	
- 797           	; Rotina:    ptc_get_value
- 798           	; Descricao: Devolve o valor corrente da contagem do periferico pTC.
- 799           	;            Interface exemplo: uint8_t ptc_get_value( );
- 800           	; Entradas:  -
- 801           	; Saidas:    R0 - O valor corrente do registo TC do periferico.
- 802           	; Efeitos:   -
- 803           	ptc_get_value:
- 804 0206 51 0C		LDR		r1, PTC_ADDR
- 805 0208 10 09		LDRB	r0, [r1, #PTC_TC_ADDRESS]
- 806 020A 0F B7		MOV		pc, lr
- 807           	
- 808           	; Rotina:    ptc_clr_irq
- 809           	; Descricao: Sinaliza o periferico pTC que foi atendido um pedido de
- 810           	;            interrupção.
- 811           	;            Interface exemplo: void ptc_clr_irq( );
- 812           	; Entradas:  -
- 813           	; Saidas:    -
- 814           	; Efeitos:   -
- 815           	ptc_clr_irq:
- 816 020C 20 0C		LDR		r0, PTC_ADDR
- 817 020E 81 29		STRB	r1, [r0, #PTC_TIR_ADDRESS]
- 818 0210 0F B7		MOV		pc, lr
- 819           	
- 820           	PTC_ADDR:
- 821 0212 00 FF		.word	PTC_ADDRESS
- 822           	
- 823           	
- 824           	
- 825           	moles_red:
- 826 0214 01		.byte 0x01
- 827 0215 04	    .byte 0x04
- 828 0216 10	    .byte 0x10
- 829 0217 40	    .byte 0x40
- 830           	
- 831           	moles_green:
- 832 0218 02		.byte 0x02
- 833 0219 08	    .byte 0x08
- 834 021A 20	    .byte 0x20
- 835 021B 80	    .byte 0x80
- 836           	
- 837           	moles_yellow:
- 838 021C 03		.byte 0x03
- 839 021D 0C	    .byte 0x0C
- 840 021E 30	    .byte 0x30
- 841 021F C0	    .byte 0xC0
- 842           	
- 843           	period:
- 844 0220 63		.byte 0x63 ;10 s   
- 845 0221 59		.byte 0x59 ;9  s
- 846 0222 4F	    .byte 0x4F ;8  s
- 847 0223 45	    .byte 0x45 ;7  s
- 848 0224 3B	    .byte 0x3B ;6  s
- 849 0225 31	    .byte 0x31 ;5  s
- 850 0226 27	    .byte 0x27 ;4  s
- 851 0227 1D	    .byte 0x1D ;3  s
- 852 0228 13	    .byte 0x13 ;2  s
- 853 0229 09	    .byte 0x09 ;1  s
- 854 022A 04	    .byte 0x04 ;0.5s
- 855           	
- 856           	
- 857           	; Seccao:    data
- 858           	; Descricao: Guarda as variaveis globais
- 859           	;
- 860           		.data
- 861 022C 00   	dificulty_time:	.space	1
- 862 022D 00   	outport_img: 	.space	1
- 863 022E 00   	last_play:   	.space	1
- 864 022F 00   	sysclk:			.space	2
- 864 0230 00
- 865           	
- 866           	moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
- 867 0231 20		.byte 0x20	; RONDA 1  => [ _1__ ]
- 868 0232 80		.byte 0x80	; RONDA 2  => [ 1___ ]
- 869 0233 02		.byte 0x02	; RONDA 3  => [ ___1 ]
- 870 0234 08		.byte 0x08	; RONDA 4  => [ __1_ ]
- 871 0235 20		.byte 0x20	; RONDA 5  => [ _1__ ]
- 872 0236 88		.byte 0x88	; RONDA 6  => [ 1_1_ ]
- 873 0237 22		.byte 0x22	; RONDA 7  => [ _1_1 ]
- 874 0238 28		.byte 0x28	; RONDA 8  => [ _11_ ]
- 875 0239 82		.byte 0x82	; RONDA 9  => [ 1_1_ ]
- 876 023A 28		.byte 0x28	; RONDA 10 => [ _11_ ]
- 877           	
- 878           	
- 879           	; Seccao:    stack
- 880           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
- 881           	;
- 882           		.stack
- 883 023C 00   		.space	STACK_SIZE
- 883 .... ..
- 883 027B 00
- 884           	stack_top:
- 885           	
- 886           	
- 887           	; SE A FREQ FOR 100kH, dá 0.01ms por cada contagem de clock. Se for até 255, dá no maximo 2,5ms
- 888           	; SE A FREQ FOR 1kH, dá 1ms por cada contagem de clock. Se for até 255, dá no maximo 255ms
- 889           	
- 890           	; COM 10HZ
- 891           	; 	TEMPO		CICLOS	PL		
- 892           	; 	10 s		100		99 	[0x63]
- 893           	; 	9  s		90		89	[0x59]
- 894           	; 	8  s		80		79	[0x4F]
- 895           	; 	7  s		70		69	[0x45]
- 896           	; 	6  s		60		59	[0x3B]
- 897           	; 	5  s		50		49	[0x31]
- 898           	; 	4  s		40		39	[0x27]
- 899           	; 	3  s		30		29	[0x1D]
- 900           	; 	2  s		20		19	[0x13]
- 901           	; 	1  s		10		09	[0x09]
- 902           	; 	0.5s		5		04	[0x04]
- 903           	; 
+ 785 0224 0F 04		POP PC
+ 786           	;time_elapsed
+ 787           	
+ 788           	/************************************************************************************
+ 789           	 * HAL sys_clk
+ 790           	 ************************************************************************************/
+ 791           	; Rotina:    isr
+ 792           	; Descricao: Incrementa o valor da variável global sysclk.
+ 793           	; Entradas:  -
+ 794           	; Saidas:    -
+ 795           	; Efeitos:   *** Para completar ***
+ 796           	isr:
+ 797 0226 01 24		PUSH	r1
+ 798 0228 00 24		PUSH	r0
+ 799 022A 00 60		MOV		r0, #INT_CS_ADDRESS & 0xFF
+ 800 022C F0 7F		MOVT	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
+ 801 022E 02 28		STRB	r2, [r0, #0]
+ 802 0230 F0 0C		LDR		r0, SYSCLK_ADDR
+ 803 0232 01 08		LDRB	r1, [r0, #0]
+ 804 0234 91 A0		ADD		r1, r1, #1
+ 805 0236 01 28		STRB	r1, [r0, #0]
+ 806 0238 00 04		POP		r0
+ 807 023A 01 04		POP		r1	
+ 808 023C 20 B0		MOVS	pc, lr
+ 809           	
+ 810           	
+ 811           	; Rotina:    sysclk_init
+ 812           	; Descricao: Inicia uma nova contagem no periferico pTC com o intervalo de
+ 813           	;            contagem recebido em R0, em ticks, limpando eventuais pedidos de
+ 814           	;            interrupção pendentes e iniciando com o valor zero a variavel
+ 815           	;            global sysclk.
+ 816           	;            Interface exemplo: void sysclk_init( uint8_t interval );
+ 817           	; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
+ 818           	; Saidas:    -
+ 819           	; Efeitos:   Inicia a contagem no periférico a partir do valor zero, limpando
+ 820           	;            eventuais pedidos de interrupção pendentes e iniciando com o
+ 821           	;            valor zero a variavel global sysclk
+ 822           	sysclk_init:
+ 823 023E 0E 24		PUSH	lr
+ 824 0240 71 0C		LDR		r1, SYSCLK_ADDR
+ 825 0242 02 60		MOV		r2, #0
+ 826 0244 12 20		STR 	r2, [r1]
+ 827 0246 05 5C		BL		ptc_init
+ 828 0248 0F 04		POP		pc
+ 829           		
+ 830           	; Rotina:    sysclk_get_ticks
+ 831           	; Descricao: Devolve o valor corrente da variável global sysclk.
+ 832           	;            Interface exemplo: uint16_t sysclk_get_ticks ( );
+ 833           	; Entradas:  -
+ 834           	; Saidas:    *** Para completar ***
+ 835           	; Efeitos:   -
+ 836           	sysclk_get_ticks:
+ 837 024A 20 0C		LDR		r0, SYSCLK_ADDR
+ 838 024C 00 00		LDR		r0, [r0]
+ 839 024E 0F B7		MOV		pc, lr
+ 840           	
+ 841           	SYSCLK_ADDR:
+ 842 0250 A5 02		.word	sysclk
+ 843           	
+ 844           	
+ 845           	/************************************************************************************
+ 846           	 * Gestor de periférico para o Pico Timer/Counter (pTC): HAL pTC
+ 847           	 ************************************************************************************/
+ 848           	; Rotina:    ptc_init
+ 849           	; Descricao: Faz a iniciacao do periférico pTC, habilitando o seu funcionamento
+ 850           	;            em modo contínuo e com o intervalo de contagem recebido em R0, em
+ 851           	;            ticks.
+ 852           	;            Interface exemplo: void ptc_init( uint8_t interval );
+ 853           	; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
+ 854           	; Saidas:    -
+ 855           	; Efeitos:   Inicia a contagem no periferico a partir do valor zero, limpando
+ 856           	;            o pedido de interrupcao eventualmente pendente.
+ 857           	ptc_init:
+ 858 0252 0E 24	    PUSH    lr
+ 859 0254 00 24		PUSH	r0
+ 860 0256 0A 5C		BL 		ptc_stop
+ 861 0258 00 04		POP		r0
+ 862 025A 21 0D		LDR		r1, PTC_ADDR
+ 863 025C 10 29		STRB	r0, [r1, #PTC_TMR_ADDRESS]
+ 864 025E 0D 5C	    BL  	ptc_clr_irq
+ 865 0260 01 5C		BL 		ptc_start
+ 866 0262 0F 04		POP pc
+ 867           	
+ 868           	
+ 869           	; Rotina:    ptc_start
+ 870           	; Descricao: Habilita a contagem no periferico pTC.
+ 871           	;            Interface exemplo: void ptc_start( );
+ 872           	; Entradas:  -
+ 873           	; Saidas:    -
+ 874           	; Efeitos:   -
+ 875           	ptc_start:
+ 876 0264 D0 0C		LDR		r0, PTC_ADDR
+ 877 0266 01 60		MOV		r1, #PTC_CMD_START
+ 878 0268 01 2A		STRB	r1, [r0, #PTC_TC_ADDRESS]
+ 879 026A 0F B7		MOV		pc, lr
+ 880           	
+ 881           	; Rotina:    ptc_stop
+ 882           	; Descricao: Para a contagem no periferico pTC.
+ 883           	;            Interface exemplo: void ptc_stop( );
+ 884           	; Entradas:  -
+ 885           	; Saidas:    -
+ 886           	; Efeitos:   O valor do registo TC do periferico e colocado a zero.
+ 887           	ptc_stop:
+ 888 026C 90 0C		LDR		r0, PTC_ADDR
+ 889 026E 11 60		MOV		r1, #PTC_CMD_STOP
+ 890 0270 01 2A		STRB	r1, [r0, #PTC_TC_ADDRESS]
+ 891 0272 0F B7		MOV		pc, lr
+ 892           	
+ 893           	; Rotina:    ptc_get_value
+ 894           	; Descricao: Devolve o valor corrente da contagem do periferico pTC.
+ 895           	;            Interface exemplo: uint8_t ptc_get_value( );
+ 896           	; Entradas:  -
+ 897           	; Saidas:    R0 - O valor corrente do registo TC do periferico.
+ 898           	; Efeitos:   -
+ 899           	ptc_get_value:
+ 900 0274 51 0C		LDR		r1, PTC_ADDR
+ 901 0276 10 0A		LDRB	r0, [r1, #PTC_TC_ADDRESS]
+ 902 0278 0F B7		MOV		pc, lr
  903           	
+ 904           	; Rotina:    ptc_clr_irq
+ 905           	; Descricao: Sinaliza o periferico pTC que foi atendido um pedido de
+ 906           	;            interrupção.
+ 907           	;            Interface exemplo: void ptc_clr_irq( );
+ 908           	; Entradas:  -
+ 909           	; Saidas:    -
+ 910           	; Efeitos:   -
+ 911           	ptc_clr_irq:
+ 912 027A 20 0C		LDR		r0, PTC_ADDR
+ 913 027C 01 2B		STRB	r1, [r0, #PTC_TIR_ADDRESS]
+ 914 027E 0F B7		MOV		pc, lr
+ 915           	
+ 916           	PTC_ADDR:
+ 917 0280 00 FF		.word	PTC_ADDRESS
+ 918           	
+ 919           	
+ 920           	
+ 921           	moles_red:
+ 922 0282 01		.byte 0x01
+ 923 0283 04	    .byte 0x04
+ 924 0284 10	    .byte 0x10
+ 925 0285 40	    .byte 0x40
+ 926           	
+ 927           	moles_green:
+ 928 0286 02		.byte 0x02
+ 929 0287 08	    .byte 0x08
+ 930 0288 20	    .byte 0x20
+ 931 0289 80	    .byte 0x80
+ 932           	
+ 933           	moles_yellow:
+ 934 028A 03		.byte 0x03
+ 935 028B 0C	    .byte 0x0C
+ 936 028C 30	    .byte 0x30
+ 937 028D C0	    .byte 0xC0
+ 938           	
+ 939           	;1KHZ
+ 940           	period: 
+ 941 028E A7 00		.word 0xA7 	; 1	  s
+ 942 0290 4F 01	    .word 0x14F ; 2	  s
+ 943 0292 F7 01	    .word 0x1F7 ; 3	  s
+ 944 0294 9F 02	    .word 0x29F ; 4	  s
+ 945 0296 47 03	    .word 0x347 ; 5	  s
+ 946 0298 EF 03	    .word 0x3EF ; 6	  s
+ 947 029A 79 04	    .word 0x479 ; 7	  s
+ 948 029C 3F 05	    .word 0x53F ; 8	  s
+ 949 029E E7 05	    .word 0x5E7 ; 9	  s
+ 950 02A0 8F 06	    .word 0x68F ; 10  s
+ 951           	
+ 952           	
+ 953           	; Seccao:    data
+ 954           	; Descricao: Guarda as variaveis globais
+ 955           	;
+ 956           		.data
+ 957 02A2 00   	dificulty_time:	.space	1
+ 958 02A3 00   	outport_img: 	.space	1
+ 959 02A4 00   	last_play:   	.space	1
+ 960 02A5 00   	sysclk:			.space	2
+ 960 02A6 00
+ 961           	
+ 962           	moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
+ 963 02A7 20		.byte 0x20	; RONDA 1  => [ _1__ ]
+ 964 02A8 80		.byte 0x80	; RONDA 2  => [ 1___ ]
+ 965 02A9 02		.byte 0x02	; RONDA 3  => [ ___1 ]
+ 966 02AA 08		.byte 0x08	; RONDA 4  => [ __1_ ]
+ 967 02AB 20		.byte 0x20	; RONDA 5  => [ _1__ ]
+ 968 02AC 88		.byte 0x88	; RONDA 6  => [ 1_1_ ]
+ 969 02AD 22		.byte 0x22	; RONDA 7  => [ _1_1 ]
+ 970 02AE 28		.byte 0x28	; RONDA 8  => [ _11_ ]
+ 971 02AF 82		.byte 0x82	; RONDA 9  => [ 1_1_ ]
+ 972 02B0 28		.byte 0x28	; RONDA 10 => [ _11_ ]
+ 973           	
+ 974           	
+ 975           	; Seccao:    stack
+ 976           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
+ 977           	;
+ 978           		.stack
+ 979 02B2 00   		.space	STACK_SIZE
+ 979 .... ..
+ 979 02F1 00
+ 980           	stack_top:
+ 981           	
+ 982           	
+ 983           	; SE A FREQ FOR 100kH, dá 0.01ms por cada contagem de clock. Se for até 255, dá no maximo 2,5ms
+ 984           	; SE A FREQ FOR 1kH, dá 1ms por cada contagem de clock. Se for até 255, dá no maximo 255ms
+ 985           	
+ 986           	; COM 1KHZ
+ 987           	; 	TEMPO		CICLOS	PL		
+ 988           	; 	0.5	s		84		83	 	[0x53]
+ 989           	; 	1	s		168		167		[0xA7]
+ 990           	; 	2	s		336		335		[0x14F]
+ 991           	; 	3	s		504		503		[0x1F7]
+ 992           	; 	4	s		672		671		[0x29F]
+ 993           	; 	5	s		840		839		[0x347]
+ 994           	; 	6	s		1008	1007	[0x3EF]
+ 995           	; 	7	s		1176	1175	[0x479]
+ 996           	; 	8	s		1344	1343	[0x53F]
+ 997           	; 	9	s		1512	1511	[0x5E7]
+ 998           	; 	10	s		1680	1679	[0x68F]
+ 999           	; 
+ 999           	
