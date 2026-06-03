@@ -10,6 +10,9 @@
 	.equ 	ALL_YELLOW_LIGHTS, 0xFF
 	.equ 	NO_LIGHTS, 0x00
 	
+	.equ 	ROUNDS_COUNT, 0x0A
+	.equ 	BLINKING_COUNT, 0x03
+
 	.equ 	VICTORY_LIGHTS, 0x01
 	.equ 	LOSER_LIGHTS, 0x00
 
@@ -28,7 +31,7 @@
 ;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS CLOCKS A CADA 1MS
 ;; ASSUMIMOS QUE O ISR DEMORA 1.2MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 5MS
 
-	.equ	SYSCLK_INIT, 0x06           ; Valor inicial do sysclk que garante a frequencia em segundos das interrupções
+	.equ	TMR_INIT_VAL, 0x05           ; Valor inicial do sysclk que garante a frequencia em segundos das interrupções
 	
 
 
@@ -51,12 +54,16 @@ stack_top_addr:
 ; Saidas:    -
 ; Efeitos:   -
 main:
+	MOV R0, #TMR_INIT_VAL
+	BL sysclk_init
+
+loop:
 	
 	BL game_setup_fun
 	BL game_start_fun
 	BL game_finished
 	
-	B main
+	B loop
 	
 ;; END MAIN
 
@@ -94,35 +101,6 @@ return_game:
 	POP PC
 ;END GAME_FINISHED
 
-;
-; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
-;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
-;	deteta o primeiro input para iniciar o jogo
-; Tipo: - NAO FOLHA -
-; Parametros de entrada:
-;	-
-; variaveis locais:
-;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
-; Parametros de saida:
-;   VOID
-;
-game_setup_fun:
-	PUSH LR
-	
-	BL game_start_signal 
-	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
-
-	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
-detect_cycle:
-	MOV R1, #0x01
-	BL detect_play
-	AND R0, R0, R1
-	
-	BZS detect_cycle
-game_setup_return:
-	POP PC
-;; END Game_Setup_Fun
-
 
 ;
 ; >> Função GAME START << Rotina que inicializa o jogo. 
@@ -143,11 +121,10 @@ game_start_fun:
 	
 	BL clear_lights
 
-	LDR R1, diff_addr
-	LDRB R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
+	LDR R1, diff_addr2
+	LDR R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
 	
-
-	MOV R5, #10
+	MOV R5, #ROUNDS_COUNT
 	MOV R4, #0						;Nº DA RONDA 
 next_round:
 	MOV R0, R4						;Nº DA RONDA 
@@ -181,6 +158,10 @@ game_start_return:
 
 
 
+diff_addr2:   		.word dificulty_time
+
+
+
 ; Rotina:    game_round
 ; Descricao: 
 ; Entradas:  R0 -> posicoes das toupeiras
@@ -191,7 +172,6 @@ game_round:
 	PUSH R4
 	PUSH R5
 	PUSH R6
-	PUSH R7
 
 	MOV R4, R0
 
@@ -199,7 +179,7 @@ game_round:
 	MOV R5, R0						; Guarda o valor do contador no momento do inicio
 
 	LDR R1, diff_addr
-	LDRB R6, [R1]					; Valor de ciclos referncia para esta dificuldade
+	LDR R6, [R1]					; Valor de ciclos referncia para esta dificuldade
 
 	
 game_round_loop:
@@ -218,25 +198,23 @@ game_round_loop:
 	MOV R1, R4
 	BL if_mole_hit_change_color
 	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE TROCAS
-
 	BZS game_round_loop
 
-	; HOUVE UMA TOUPEIRA QUE PASSOU A VERMELHO
-	;BL time_get_ref					; Começa a contar o tempo da ronda
-	;MOV R7, R0						; Guarda o valor do contador no momento do inicio
 
 	BL check_if_any_mole_left
 	AND R0, R0, R0
 	
 	BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
 
+	MOV R0, #WAIT_500MS		
+	BL wait_ticks			
+	
+	MOV R0, #1
 	B game_return
 game_timeout:
 	MOV R0, #0
 
 game_return:
-
-	POP R7
 	POP R6
 	POP R5
 	POP R4
@@ -262,16 +240,48 @@ read_and_save_game_dificulty:
 	MOV R2, #0xE0
 	AND R0, R0, R2
 
+	LSR R0, R0, #5
+
 	LDR r1, period_addr	; Carrega o endereço do array
 	LDR r0, [R1, R0]	; Carrega do array a posição R0
 
 	LDR r1, diff_addr	; Carrega o endereço da variavel
-	STRB r0, [R1]		; Guarda o valor obtido do array na variável
+	STR r0, [R1]		; Guarda o valor obtido do array na variável
 
 
 	POP PC
 ; END
 diff_addr:   		.word dificulty_time
+
+;
+; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
+;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
+;	deteta o primeiro input para iniciar o jogo
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
+; Parametros de saida:
+;   VOID
+;
+game_setup_fun:
+	PUSH LR
+	
+	BL game_start_signal 
+	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
+
+	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+detect_cycle:
+	MOV R1, #0x01
+	BL detect_play
+	AND R0, R0, R1
+	
+	BZS detect_cycle
+game_setup_return:
+	POP PC
+;; END Game_Setup_Fun
+
 
 
 ; Rotina:    sleep
@@ -309,30 +319,31 @@ flashing_lights:
 	PUSH LR
 	PUSH R4
 
-	MOV R4, #3
+	MOV R4, #BLINKING_COUNT
 	
-	MOV R1, #WAIT_500MS
+	MOV R3, #WAIT_500MS
 	
 	MOV R2, #LOSER_LIGHTS
 	CMP R0, R2
 	BEQ loser_prep
 
 victory_prep:
-	MOV R2, #VICTORY_LIGHTS
+	MOV R2, #ALL_GREEN_LIGHTS
 	B flashing_lights_loop
 loser_prep:
-	MOV R2, #LOSER_LIGHTS
+	MOV R2, #ALL_RED_LIGHTS
 
 flashing_lights_loop:
-	MOV R0, #ALL_GREEN_LIGHTS	; METE TUDO A VERDE
+
+	MOV R0, R2					; METE TUDO A VERDE
 	BL outport_write
 	
-	MOV R0, R1			
+	MOV R0, R3			
 	BL wait_ticks
 
 	BL clear_lights				; APAGA OS LEDS TODOS
 
-	MOV R0, R1			
+	MOV R0, R3			
 	BL wait_ticks
 
 	SUB R4, R4, #1
@@ -761,7 +772,7 @@ out_port_img_addr:  .word outport_img
 ; Saidas:    R0 - valor atual do sysclk (16 bits)
 ; Efeitos:   *** Para completar ***
 time_get_ref:
-	POP LR
+	PUSH LR
 
 	BL sysclk_get_ticks
 
@@ -774,7 +785,7 @@ time_get_ref:
 ; Saidas:    R0 - número de ticks passados desde tempo de referência (now-ref : de notar que o resultado da diferença continua a ser válido se now<ref)
 ; Efeitos:   *** Para completar ***
 time_elapsed:
-	POP LR
+	PUSH LR
 
 	MOV R1, R0
 
@@ -794,17 +805,20 @@ time_elapsed:
 ; Saidas:    -
 ; Efeitos:   *** Para completar ***
 isr:
+	PUSH	LR
 	PUSH	r1
 	PUSH	r0
-	MOV		r0, #INT_CS_ADDRESS & 0xFF
-	MOVT	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
-	STRB	r2, [r0, #0]
+	
+	BL 		ptc_clr_irq
+
 	LDR		r0, SYSCLK_ADDR
-	LDRB	r1, [r0, #0]
+	LDR		r1, [r0, #0]
 	ADD		r1, r1, #1
-	STRB	r1, [r0, #0]
+	STR		r1, [r0, #0]
 	POP		r0
 	POP		r1	
+	POP		LR 
+
 	MOVS	pc, lr
 
 
@@ -838,8 +852,9 @@ sysclk_get_ticks:
 	LDR		r0, [r0]
 	MOV		pc, lr
 
-SYSCLK_ADDR:
-	.word	sysclk
+
+.align 1
+SYSCLK_ADDR: .word	sysclk
 
 
 /************************************************************************************
@@ -864,6 +879,7 @@ ptc_init:
     BL  	ptc_clr_irq
 	BL 		ptc_start
 	POP pc
+
 
 
 ; Rotina:    ptc_start
@@ -938,23 +954,23 @@ moles_yellow:
 
 ;1KHZ
 period: 
-	.word 0xA7 	; 1	  s
-    .word 0x14F ; 2	  s
-    .word 0x1F7 ; 3	  s
-    .word 0x29F ; 4	  s
-    .word 0x347 ; 5	  s
-    .word 0x3EF ; 6	  s
-    .word 0x479 ; 7	  s
-    .word 0x53F ; 8	  s
-    .word 0x5E7 ; 9	  s
     .word 0x68F ; 10  s
+    .word 0x5E7 ; 9	  s
+    .word 0x53F ; 8	  s
+    .word 0x479 ; 7	  s
+    .word 0x3EF ; 6	  s
+    .word 0x347 ; 5	  s
+    .word 0x29F ; 4	  s
+    .word 0x1F7 ; 3	  s
+    .word 0x14F ; 2	  s
+	.word 0xA7 	; 1	  s
 
 
 ; Seccao:    data
 ; Descricao: Guarda as variaveis globais
 ;
 	.data
-dificulty_time:	.space	1
+dificulty_time:	.space	2
 outport_img: 	.space	1
 last_play:   	.space	1
 sysclk:			.space	2
@@ -997,3 +1013,5 @@ stack_top:
 ; 	9	s		1512	1511	[0x5E7]
 ; 	10	s		1680	1679	[0x68F]
 ; 
+
+
