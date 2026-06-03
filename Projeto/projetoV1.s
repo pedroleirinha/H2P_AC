@@ -241,6 +241,7 @@ read_and_save_game_dificulty:
 	AND R0, R0, R2
 
 	LSR R0, R0, #5
+	LSL R0, R0, #1
 
 	LDR r1, period_addr	; Carrega o endereço do array
 	LDR r0, [R1, R0]	; Carrega do array a posição R0
@@ -956,13 +957,11 @@ moles_yellow:
 period: 
     .word 0x68F ; 10  s
     .word 0x5E7 ; 9	  s
-    .word 0x53F ; 8	  s
     .word 0x479 ; 7	  s
-    .word 0x3EF ; 6	  s
     .word 0x347 ; 5	  s
     .word 0x29F ; 4	  s
-    .word 0x1F7 ; 3	  s
     .word 0x14F ; 2	  s
+	.word 0xA7 	; 1	  s
 	.word 0xA7 	; 1	  s
 
 
