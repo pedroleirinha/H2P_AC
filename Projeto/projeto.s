@@ -13,13 +13,17 @@
 	.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
 	.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
     .equ	PTC_TCR_ADDRESS, 0     		; Endereço de memória para ativar o [TCR Register] do pTC [0xFF00]
-	.equ	PTC_TMR_ADDRESS, 1     		; Endereço de memória para ativar o [TMR Register] do pTC [0xFF02]
-	.equ	PTC_TC_ADDRESS, 2     		; Endereço de memória para ativar o [TC Register] do pTC [0xFF04]
-	.equ	PTC_TIR_ADDRESS, 3			; Endereço de memória para ativar o [TIR Register] do pTC [0xFF06]
+	.equ	PTC_TMR_ADDRESS, 2     		; Endereço de memória para ativar o [TMR Register] do pTC [0xFF02]
+	.equ	PTC_TC_ADDRESS, 4     		; Endereço de memória para ativar o [TC Register] do pTC [0xFF04]
+	.equ	PTC_TIR_ADDRESS, 6			; Endereço de memória para ativar o [TIR Register] do pTC [0xFF06]
 	.equ	PTC_CMD_START, 0			; Comando para iniciar a contagem no pTC
 	.equ	PTC_CMD_STOP, 1				; Comando para parar a contagem no pTC
 
-	.equ	SYSCLK_INIT, 100              ; Valor inicial do sysclk
+;; O VALOR DO CONTADOR INTERNO DO PICO TIMER SERA SEMPRE 6 PARA GARANTIR QUE É SEMPRE FEITA INTERRUPÇÕES A CADA 6MS
+;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS CLOCKS A CADA 1MS
+;; ASSUMIMOS QUE O ISR DEMORA 1.2MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 5MS
+
+	.equ	SYSCLK_INIT, 0x06           ; Valor inicial do sysclk que garante a frequencia em segundos das interrupções
 	
 
 
@@ -43,9 +47,9 @@ stack_top_addr:
 ; Efeitos:   -
 main:
 	
-	;BL game_setup_fun
+	BL game_setup_fun
 	BL game_start_fun
-	;BL game_finished
+	BL game_finished
 	
 	B main
 	
@@ -99,9 +103,9 @@ game_setup_fun:
 	PUSH LR
 	
 	BL game_start_signal 
-	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
 	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
-	BL sysclk_init
+
+	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
 detect_cycle:
 	MOV R1, #0x01
 	BL detect_play
@@ -129,8 +133,15 @@ game_start_fun:
 	PUSH LR
 	PUSH R4
 	PUSH R5
+	PUSH R6
 	BL clear_lights
 
+	LDR R1, diff_addr
+	LDRB R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
+	
+	BL sysclk_init
+
+	MOV R6, #10
 	MOV R5, #0						;Nº DA RONDA 
 next_round:
 	MOV R0, R5						;Nº DA RONDA 
@@ -139,14 +150,23 @@ next_round:
 	BL game_round
 
 	ADD R5, R5, #1					; INCREMENTA O Nº DA RONDA
-	BL clear_lights
-	MOV R0, #5
+	
+	MOV R0, #0
 	BL sleep
+	
+	BL clear_lights
+	
+	CMP R6, R5
+	BEQ game_start_return
+	
 	B next_round
 
 game_start_return:
-	POP R4
+	MOV R0, #1
+
+	POP R6
 	POP R5
+	POP R4
 	POP PC
 ;; END Game_Start_Fun
 
@@ -184,8 +204,61 @@ game_round_loop:
 	POP R5
 	POP R4
 	POP PC
+; END
 
 
+;
+; >> Função READ_GAME_DIFICULTY <<
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> 
+;
+read_and_save_game_dificulty: 
+	PUSH LR
+	BL inport_read
+
+	; Só precisamos dos 3 bits mais significativos
+	MOV R2, #0xE0
+	AND R0, R0, R2
+
+	LDR r1, period_addr	; Carrega o endereço do array
+	LDR r0, [R1, R0]	; Carrega do array a posição R0
+
+	LDR r1, diff_addr	; Carrega o endereço da variavel
+	STRB r0, [R1]		; Guarda o valor obtido do array na variável
+
+
+	POP PC
+; END
+diff_addr:   		.word dificulty_time
+
+
+; Rotina:    sleep
+; Descricao: Faz um atraso de tempo de #1 em r0 e r1
+; Entradas:  Recebe r0
+; Saidas:    Não têm
+; Efeitos:   Altera os registos R0 e R1
+sleep:
+
+	LDR r1, period_addr	; Carrega o endereço do array
+	LDR r0, [R1, R0]	; Carrega do array a posição R0
+
+	and	r0, r0, r0
+	beq	sleep_end
+sleep_outer_loop:
+	MOV	r1, #0x0E
+	MOVT r1, #0x03
+sleep_inner_loop:
+	sub	r1, r1, #1
+	bne	sleep_inner_loop
+	sub	r0, r0, #1
+	bne	sleep_outer_loop
+sleep_end:
+	MOV	pc, lr
 
 
 
@@ -196,24 +269,61 @@ game_round_loop:
 ; Efeitos:  
 vitory_lights:
 	PUSH LR
-	
-	MOV R1, #3
+	PUSH R4
+
+	MOV R4, #3
+
+	LDR R1, period_addr
+	LDR R1, [R1, #0]	; Vai buscar o número de ciclos para obter 500ms / 0.5s
 
 vitory_loop:
-	MOV R0, #ALL_GREEN_LIGHTS
+	MOV R0, #ALL_GREEN_LIGHTS	; METE TUDO A VERDE
 	BL outport_write
 	
-	MOV R0, #2
-	BL sleep
+	MOV R0, R1			
+	BL wait_ticks
 
-	BL clear_lights
-	SUB R1, R1, #1
+	BL clear_lights				; APAGA OS LEDS TODOS
+
+	MOV R0, R1			
+	BL wait_ticks
+
+	SUB R4, R4, #1
 	BZS victory_retur
 	B vitory_loop
 
 victory_retur:
+	POP R4
 	POP PC
 ;END
+
+period_addr:  		.word period
+
+
+; Rotina:    delay_ticks
+; Descricao: 
+; Entradas:  R0 -> Recebe o número de ciclos que pretende esperar
+; Saidas:    -
+; Efeitos:  Espera meio segundo
+wait_ticks:
+    PUSH LR
+    PUSH R1
+    PUSH R2
+
+    MOV R2, R0              ; Guarda o tempo desejado
+    BL time_get_ref
+    MOV R1, R0              ; R1 = tempo de referência inicial
+
+wait_loop:
+    MOV R0, R1
+    BL time_elapsed         ; Calcula diferença entre agora e R1
+    CMP R0, R2              ; Compara tempo decorrido com o desejado [3]
+    BLT wait_loop          ; Enquanto decorrido < desejado, espera [5]
+
+    POP R2
+    POP R1
+    POP PC
+
 
 ; Rotina:    losing_lights
 ; Descricao: 
@@ -229,7 +339,7 @@ losing_loop:
 	MOV R0, #ALL_RED_LIGHTS
 	BL outport_write
 	
-	MOV R0, #2
+	MOV R0, #0
 	BL sleep
 
 	BL clear_lights
@@ -349,65 +459,6 @@ start_up_interruptions:
 
 	POP PC
 ;END interruption
-
-
-
-;
-; >> Função READ_GAME_DIFICULTY <<
-; Tipo: - FOLHA -
-; Parametros de entrada:
-;	-
-; variaveis locais:
-;	-
-; Parametros de saida:
-;   R0 -> 
-;
-read_and_save_game_dificulty: 
-	PUSH LR
-	BL inport_read
-
-	; Só precisamos dos 3 bits mais significativos
-	MOV R2, #0xE0
-	AND R0, R0, R2
-
-	LDR r1, period_addr	; Carrega o endereço do array
-	LDRB r0, [R1, R0]	; Carrega do array a posição R0
-
-	LDR r1, diff_addr	; Carrega o endereço da variavel
-	STRB r0, [R1]		; Guarda o valor obtido do array na variável
-
-
-	POP PC
-; END
-
-
-; Rotina:    sleep
-; Descricao: Faz um atraso de tempo de #1 em r0 e r1
-; Entradas:  Recebe r0
-; Saidas:    Não têm
-; Efeitos:   Altera os registos R0 e R1
-sleep:
-
-	LDR r1, period_addr	; Carrega o endereço do array
-	LDRB r0, [R1, R0]	; Carrega do array a posição R0
-
-	and	r0, r0, r0
-	beq	sleep_end
-sleep_outer_loop:
-	MOV	r1, #0x3E
-	MOVT r1, #0x03
-sleep_inner_loop:
-	sub	r1, r1, #1
-	bne	sleep_inner_loop
-	sub	r0, r0, #1
-	bne	sleep_outer_loop
-sleep_end:
-	MOV	pc, lr
-
-
-period_addr:  		.word period
-diff_addr:   		.word dificulty_time
-
 
 
 ;
@@ -679,7 +730,12 @@ out_port_img_addr:  .word outport_img
 ; Saidas:    R0 - valor atual do sysclk (16 bits)
 ; Efeitos:   *** Para completar ***
 time_get_ref:
-	; Completar
+	POP LR
+
+	BL sysclk_get_ticks
+
+	POP PC
+;time_get_ref
 
 ; Rotina:    time_elapsed
 ; Descricao: Retorna o número de ticks passados desde o tempo de referência
@@ -687,7 +743,16 @@ time_get_ref:
 ; Saidas:    R0 - número de ticks passados desde tempo de referência (now-ref : de notar que o resultado da diferença continua a ser válido se now<ref)
 ; Efeitos:   *** Para completar ***
 time_elapsed:
-	; Completar
+	POP LR
+
+	MOV R1, R0
+
+	BL sysclk_get_ticks		; Retorna o valor atual do sysclock
+
+	SUB R0, R1, R0			; Calcula a diferença entre o tempo atual (sysclk) e o valor referncia (sysclk antigo)
+
+	POP PC
+;time_elapsed
 
 /************************************************************************************
  * HAL sys_clk
@@ -708,7 +773,7 @@ isr:
 	ADD		r1, r1, #1
 	STRB	r1, [r0, #0]
 	POP		r0
-	POP		r1
+	POP		r1	
 	MOVS	pc, lr
 
 
@@ -840,18 +905,19 @@ moles_yellow:
     .byte 0x30
     .byte 0xC0
 
-period:
-	.byte 0x63 ;10 s   
-	.byte 0x59 ;9  s
-    .byte 0x4F ;8  s
-    .byte 0x45 ;7  s
-    .byte 0x3B ;6  s
-    .byte 0x31 ;5  s
-    .byte 0x27 ;4  s
-    .byte 0x1D ;3  s
-    .byte 0x13 ;2  s
-    .byte 0x09 ;1  s
-    .byte 0x04 ;0.5s
+;1KHZ
+period: 
+	.word 0x53 	; 0.5 s   
+	.word 0xA7 	; 1	  s
+    .word 0x14F ; 2	  s
+    .word 0x1F7 ; 3	  s
+    .word 0x29F ; 4	  s
+    .word 0x347 ; 5	  s
+    .word 0x3EF ; 6	  s
+    .word 0x479 ; 7	  s
+    .word 0x53F ; 8	  s
+    .word 0x5E7 ; 9	  s
+    .word 0x68F ; 10  s
 
 
 ; Seccao:    data
@@ -887,17 +953,17 @@ stack_top:
 ; SE A FREQ FOR 100kH, dá 0.01ms por cada contagem de clock. Se for até 255, dá no maximo 2,5ms
 ; SE A FREQ FOR 1kH, dá 1ms por cada contagem de clock. Se for até 255, dá no maximo 255ms
 
-; COM 10HZ
+; COM 1KHZ
 ; 	TEMPO		CICLOS	PL		
-; 	10 s		100		99 	[0x63]
-; 	9  s		90		89	[0x59]
-; 	8  s		80		79	[0x4F]
-; 	7  s		70		69	[0x45]
-; 	6  s		60		59	[0x3B]
-; 	5  s		50		49	[0x31]
-; 	4  s		40		39	[0x27]
-; 	3  s		30		29	[0x1D]
-; 	2  s		20		19	[0x13]
-; 	1  s		10		09	[0x09]
-; 	0.5s		5		04	[0x04]
+; 	0.5	s		84		83	 	[0x53]
+; 	1	s		168		167		[0xA7]
+; 	2	s		336		335		[0x14F]
+; 	3	s		504		503		[0x1F7]
+; 	4	s		672		671		[0x29F]
+; 	5	s		840		839		[0x347]
+; 	6	s		1008	1007	[0x3EF]
+; 	7	s		1176	1175	[0x479]
+; 	8	s		1344	1343	[0x53F]
+; 	9	s		1512	1511	[0x5E7]
+; 	10	s		1680	1679	[0x68F]
 ; 
