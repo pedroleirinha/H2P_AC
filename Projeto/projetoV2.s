@@ -68,6 +68,39 @@ loop:
 ;; END MAIN
 
 
+
+;
+; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
+;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
+;	deteta o primeiro input para iniciar o jogo
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
+; Parametros de saida:
+;   VOID
+;
+game_setup_fun:
+	PUSH LR
+	
+	BL game_start_signal 
+	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
+
+	MOV R4, #0x01
+detect_cycle:
+	MOV R1, R4
+	BL detect_play
+	AND R0, R0, R4
+	
+	BZS detect_cycle
+game_setup_return:
+	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+
+	POP PC
+;; END Game_Setup_Fun
+
+
 ;
 ; >> Função GAME FINISHED << Rotina que é executada depois do jogo terminar, 
 ;	quer por tempo terminado ou por concluir as rondas todas
@@ -121,25 +154,14 @@ game_start_fun:
 	
 	BL clear_lights
 
-	LDR R1, diff_addr2
-	LDR R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
+	BL get_difficulty_time
 	
 	MOV R5, #ROUNDS_COUNT
 	MOV R4, #0						;Nº DA RONDA 
 next_round:
 	
-	
-	;MOV R0, R4						;Nº DA RONDA 
-random_loop:
+	MOV R0, R4
 	BL generate_random_mole
-	MOV R3, R0
-
-	MOV R1, #ALL_GREEN_LIGHTS
-	CMP R1, R3
-	BEQ random_loop
-	AND R3, R3, R3
-	BZS random_loop					; CASO não ha toupeira gera uma nova
-
 	BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY em R0
 
 	BL game_round
@@ -170,10 +192,6 @@ game_start_return:
 
 
 
-diff_addr2:   		.word dificulty_time
-
-
-
 ; Rotina:    game_round
 ; Descricao: 
 ; Entradas:  R0 -> posicoes das toupeiras
@@ -187,28 +205,28 @@ game_round:
 
 	MOV R4, R0
 
-	BL time_get_ref					; Começa a contar o tempo da ronda
-	MOV R5, R0						; Guarda o valor do contador no momento do inicio
+	BL time_get_ref						; Começa a contar o tempo da ronda
+	MOV R5, R0							; Guarda o valor do contador no momento do inicio
 
-	LDR R1, diff_addr
-	LDR R6, [R1]					; Valor de ciclos referncia para esta dificuldade
+	BL get_difficulty_time
+	MOV R6, R0
 	
 game_round_loop:
-    MOV R0, R5				; Metemos em R0, o valor que estava no inicio da contagem
-    BL time_elapsed         ; Calcula diferença entre agora e R1
-    CMP R0, R6              ; Compara tempo decorrido com o desejado
-    BHS game_timeout		; Enquanto decorrido < desejado, espera
+    MOV R0, R5							; Metemos em R0, o valor que estava no inicio da contagem
+    BL time_elapsed         			; Calcula diferença entre agora e R1
+    CMP R0, R6              			; Compara tempo decorrido com o desejado
+    BHS game_timeout					; Enquanto decorrido < desejado, espera
 
 
 	MOV R1, #0x0F
-	BL detect_play			; DEVOLVE A MASCARA DOS INPUTS DETETADOS
-	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
+	BL detect_play						; DEVOLVE A MASCARA DOS INPUTS DETETADOS
+	AND R0, R0, R0						; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
 
 	BZS game_round_loop
 	
 	MOV R1, R4
 	BL if_mole_hit_change_color
-	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE TROCAS
+	AND R0, R0, R0						; SE ESTIVER A ZERO, NAO HOUVE TROCAS
 	BZS game_round_loop
 
 
@@ -220,10 +238,10 @@ game_round_loop:
 	MOV R0, #WAIT_500MS		
 	BL wait_ticks			
 	
-	MOV R0, #1
+	MOV R0, #1							; Retorna true, ganhou
 	B game_return
 game_timeout:
-	MOV R0, #0
+	MOV R0, #0							; Retorna false, perdeu
 
 game_return:
 	POP R6
@@ -231,7 +249,6 @@ game_return:
 	POP R4
 	POP PC
 ; END
-
 
 ;
 ; >> Função READ_GAME_DIFICULTY <<
@@ -254,73 +271,19 @@ read_and_save_game_dificulty:
 	LSR R0, R0, #5
 	LSL R0, R0, #1
 
-	LDR r1, period_addr	; Carrega o endereço do array
-	LDR r0, [R1, R0]	; Carrega do array a posição R0
+	;LDR r1, period_addr	; Carrega o endereço do array
+	;LDR r0, [R1, R0]	; Carrega do array a posição R0
 
-	LDR r1, diff_addr	; Carrega o endereço da variavel
-	STR r0, [R1]		; Guarda o valor obtido do array na variável
+	BL get_period_time_from_array
+
+	;LDR r1, diff_addr	; Carrega o endereço da variavel
+	;STR r0, [R1]		; Guarda o valor obtido do array na variável
+
+	BL set_difficulty_time
 
 
 	POP PC
 ; END
-diff_addr:   		.word dificulty_time
-
-;
-; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
-;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
-;	deteta o primeiro input para iniciar o jogo
-; Tipo: - NAO FOLHA -
-; Parametros de entrada:
-;	-
-; variaveis locais:
-;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
-; Parametros de saida:
-;   VOID
-;
-game_setup_fun:
-	PUSH LR
-	
-	BL game_start_signal 
-	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
-
-	MOV R4, #0x01
-detect_cycle:
-	MOV R1, R4
-	BL detect_play
-	AND R0, R0, R4
-	
-	BZS detect_cycle
-game_setup_return:
-	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
-
-	POP PC
-;; END Game_Setup_Fun
-
-
-
-; Rotina:    sleep
-; Descricao: Faz um atraso de tempo de #1 em r0 e r1
-; Entradas:  Recebe r0
-; Saidas:    Não têm
-; Efeitos:   Altera os registos R0 e R1
-sleep:
-
-	LDR r1, period_addr	; Carrega o endereço do array
-	LDR r0, [R1, R0]	; Carrega do array a posição R0
-
-	and	r0, r0, r0
-	beq	sleep_end
-sleep_outer_loop:
-	MOV	r1, #0x0E
-	MOVT r1, #0x03
-sleep_inner_loop:
-	sub	r1, r1, #1
-	bne	sleep_inner_loop
-	sub	r0, r0, #1
-	bne	sleep_outer_loop
-sleep_end:
-	MOV	pc, lr
-
 
 
 ; Rotina:    vitory_lights
@@ -368,8 +331,6 @@ flashing_lights_retur:
 	POP R4
 	POP PC
 ;END
-
-period_addr:  		.word period
 
 
 ; Rotina:    delay_ticks
@@ -445,15 +406,25 @@ mole_hit_return:
 ; Efeitos:  
 show_moles_state:
 	PUSH LR
-	
-	;LDR R2, moles_position_addr
-	;LDRB R3, [R2, R0]
 
-	;MOV R0, R3
 	BL outport_write
 
 	POP PC
 ; END SHOW_MOLES_STATE
+
+
+; Rotina:    get_moles_positions_from_array
+; Descricao: 
+; Entradas: R0 -> Indice do array aleatorio para aceder ao array de posicionamentoos das toupeiras 
+; Saidas:   
+; Efeitos:  
+get_moles_positions_from_array:
+	LDR R1, moles_position_addr
+	LDRB R0, [R1, R0]
+
+	MOV PC, LR
+;END 
+
 
 
 
@@ -694,30 +665,93 @@ check_mole_return:
 ;END CHECK_MOLE_POSITION
 
 
-;COMMENTS
+; Rotina:    generate_new_mole
+; Descricao: 
+; Entradas:
+; Saidas:    Devolve a posição do array das toupeiras gerada aleatoriamente
+; Efeitos:  
 generate_new_mole:
 	PUSH LR
 
 	BL sysclk_get_ticks		; VAI buscar o valor da variavel sysclk
-	MOV R1, #ALL_GREEN_LIGHTS
-	AND R0, R0, R1			; Filtra para ficar só com as toupeiras verdes
+	MOV R1, #0x07
+	AND R0, R0, R1			; Filtra para ficar só com os 2 bits menos significativos __XX
 
 
 	POP PC
 ;END
 
-;COMMENTS
+; Rotina:    generate_new_mole
+; Descricao: 
+; Entradas: R0 -> N º da ronda atual
+; Saidas:   R0 -> Mascarada de onde estão posicionadas as toupeiras geradas aleatoriamente
+;				1 Toupeira se: 0 <= N <= 3
+;				2 Toupeira se: 4 <= N <  7
+; Efeitos:  
 generate_random_mole:
 	PUSH LR
+	PUSH R4
+	MOV R4, R0
 
-	BL sysclk_get_ticks		; VAI buscar o valor da variavel sysclk
-	MOV R1, #ALL_GREEN_LIGHTS
-	AND R0, R0, R1			; Filtra para ficar só com as toupeiras verdes
+	BL generate_new_mole 
+	MOV R1, #3
+	CMP R4, R1		; SE nº de ronda for >= que 3
+	BLO return_random_mole
 
+two_moles:
+	MOV R1, #0x08
+	ORR R0, R1, R0
 
+return_random_mole:
+
+	BL get_moles_positions_from_array
+
+	POP R4
 	POP PC
 ;END
 
+
+; Rotina:    generate_new_mole
+; Descricao: 
+; Entradas: 
+; Saidas:   R0 -> Valor em ciclos da dificuldade definida em memória
+; Efeitos:  
+get_difficulty_time:
+
+	LDR R1, diff_addr
+	LDR R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
+
+	MOV PC, LR
+;END 
+
+; Rotina:    generate_new_mole
+; Descricao: 
+; Entradas: R0 -> Valor em ciclos da dificuldade para guardar em memória
+; Saidas:   
+; Efeitos:  
+set_difficulty_time:
+	LDR r1, diff_addr	; Carrega o endereço da variavel
+	STR r0, [R1]		; Guarda o valor obtido do array na variável
+
+	MOV PC, LR
+;END 
+
+diff_addr:   		.word dificulty_time
+
+
+; Rotina:    generate_new_mole
+; Descricao: 
+; Entradas: R0 -> Indice do array com os periodos definidos para a dificuldade. 
+; Saidas:   
+; Efeitos:  
+get_period_time_from_array:
+	LDR r1, period_addr	; Carrega o endereço do array
+	LDR r0, [R1, R0]	; Carrega do array a posição R0
+
+	MOV PC, LR
+;END 
+
+period_addr:  		.word period
 
 
 
@@ -1011,16 +1045,24 @@ last_play:   	.space	1
 sysclk:			.space	2
 
 moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
-	.byte 0x20	; RONDA 1  => [ _1__ ]
-	.byte 0x80	; RONDA 2  => [ 1___ ]
-	.byte 0x02	; RONDA 3  => [ ___1 ]
-	.byte 0x08	; RONDA 4  => [ __1_ ]
-	.byte 0x22	; RONDA 5  => [ _1__ ]
-	.byte 0x88	; RONDA 6  => [ 1_1_ ]
-	.byte 0x22	; RONDA 7  => [ _1_1 ]
-	.byte 0x28	; RONDA 8  => [ _11_ ]
-	.byte 0x82	; RONDA 9  => [ 1_1_ ]
-	.byte 0x28	; RONDA 10 => [ _11_ ]
+	; 1 TOUPEIRAS
+	.byte 0x20	; [ _1__ ]
+	.byte 0x80	; [ 1___ ]
+	.byte 0x02	; [ ___1 ]
+	.byte 0x08	; [ __1_ ]
+	.byte 0x20	; [ _1__ ]
+	.byte 0x80	; [ 1___ ]
+	.byte 0x02	; [ ___1 ]
+	.byte 0x08	; [ __1_ ]
+	; 2 TOUPEIRAS
+	.byte 0x88	; [ 1_1_ ]
+	.byte 0x22	; [ _1_1 ]
+	.byte 0x28	; [ _11_ ]
+	.byte 0x82	; [ 1__1 ]
+	.byte 0xC0	; [ 11__ ]
+	.byte 0x0C	; [ __11 ]
+	.byte 0x82	; [ 1__1 ]
+	.byte 0x22	; [ _1_1 ]
 
 
 ; Seccao:    stack
