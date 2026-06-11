@@ -10,10 +10,13 @@
 	.equ 	ALL_YELLOW_LIGHTS, 0xFF
 	.equ 	NO_LIGHTS, 0x00
 	
+	.equ 	ROUNDS_COUNT, 0x0A
+	.equ 	BLINKING_COUNT, 0x03
+
 	.equ 	VICTORY_LIGHTS, 0x01
 	.equ 	LOSER_LIGHTS, 0x00
 
-	.equ 	WAIT_500MS, 0x53
+	.equ 	WAIT_500MS, 0x54
 
 	.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
 	.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
@@ -25,10 +28,10 @@
 	.equ	PTC_CMD_STOP, 1				; Comando para parar a contagem no pTC
 
 ;; O VALOR DO CONTADOR INTERNO DO PICO TIMER SERA SEMPRE 6 PARA GARANTIR QUE É SEMPRE FEITA INTERRUPÇÕES A CADA 6MS
-;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS CLOCKS A CADA 1MS
-;; ASSUMIMOS QUE O ISR DEMORA 1.2MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 5MS
+;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS TRANSIÇÕES A CADA 1MS
+;; ASSUMIMOS QUE O ISR DEMORA 1.48MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 4.52MS
 
-	.equ	SYSCLK_INIT, 0x06           ; Valor inicial do sysclk que garante a frequencia em segundos das interrupções
+	.equ	TMR_INIT_VAL, 0x05           ; Valor programado no TMR que garante a frequencia das interrupções a cada 6ms
 	
 
 
@@ -45,20 +48,62 @@ program:
 stack_top_addr:
 	.word	stack_top
 
-; Rotina:    MAIN Function
-; Descricao: -
-; Entradas:  -
-; Saidas:    -
-; Efeitos:   -
+;
+; >> Função MAIN <<
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> 
+;
 main:
+	MOV R0, #TMR_INIT_VAL
+	BL sysclk_init					; INICIALIZA O PICO_TIMER
+	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
+
+loop:
 	
 	BL game_setup_fun
 	BL game_start_fun
 	BL game_finished
-	
-	B main
+	BL detect_play
+	B loop
 	
 ;; END MAIN
+
+
+
+;
+; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
+;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
+;	deteta o primeiro input para iniciar o jogo
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
+; Parametros de saida:
+;   VOID
+;
+game_setup_fun:
+	PUSH LR
+	
+	BL game_start_signal 
+
+	MOV R4, #0x01
+detect_cycle:
+	MOV R1, R4
+	BL detect_play
+	AND R0, R0, R4
+	
+	BZS detect_cycle
+game_setup_return:
+	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
+
+	POP PC
+;; END Game_Setup_Fun
 
 
 ;
@@ -94,35 +139,6 @@ return_game:
 	POP PC
 ;END GAME_FINISHED
 
-;
-; >> Função GAME SETUP << Rotina que prepeara o inicio do jogo. 
-;	Inicia o PicoTimer, Faz enable ás interrupções, Lê a dificuldade do jogo posta no inputport e 
-;	deteta o primeiro input para iniciar o jogo
-; Tipo: - NAO FOLHA -
-; Parametros de entrada:
-;	-
-; variaveis locais:
-;	R1 -> i (Mascara usada para definir qual o input que estamos a "detetar")
-; Parametros de saida:
-;   VOID
-;
-game_setup_fun:
-	PUSH LR
-	
-	BL game_start_signal 
-	BL start_up_interruptions		; PROCESSO DE INICIALIZAÇÃO DAS INTERRUPÇÕES
-
-	BL read_and_save_game_dificulty ; Lê e grava em memória o tempo selecionado para a ronda
-detect_cycle:
-	MOV R1, #0x01
-	BL detect_play
-	AND R0, R0, R1
-	
-	BZS detect_cycle
-game_setup_return:
-	POP PC
-;; END Game_Setup_Fun
-
 
 ;
 ; >> Função GAME START << Rotina que inicializa o jogo. 
@@ -143,14 +159,14 @@ game_start_fun:
 	
 	BL clear_lights
 
-	LDR R1, diff_addr
-	LDRB R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
+	BL get_difficulty_time
 	
-
-	MOV R5, #10
+	MOV R5, #ROUNDS_COUNT
 	MOV R4, #0						;Nº DA RONDA 
 next_round:
-	MOV R0, R4						;Nº DA RONDA 
+	
+	MOV R0, R4
+	BL generate_random_mole
 	BL show_moles_state				;CARREGA AS POSIÇÕES DAS TOUPEIRAS A PARTIR DO ARRAY em R0
 
 	BL game_round
@@ -174,6 +190,7 @@ game_start_return_true:
 game_start_return_false:
 	MOV R0, #0
 game_start_return:
+
 	POP R5
 	POP R4
 	POP PC
@@ -181,68 +198,68 @@ game_start_return:
 
 
 
-; Rotina:    game_round
-; Descricao: 
-; Entradas:  R0 -> posicoes das toupeiras
-; Saidas:    -
-; Efeitos:  
+;
+; >> Função READ_GAME_DIFICULTY <<
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> 
+;
 game_round:
 	PUSH LR
 	PUSH R4
 	PUSH R5
 	PUSH R6
-	PUSH R7
 
 	MOV R4, R0
 
-	BL time_get_ref					; Começa a contar o tempo da ronda
-	MOV R5, R0						; Guarda o valor do contador no momento do inicio
+	BL time_get_ref						; Começa a contar o tempo da ronda
+	MOV R5, R0							; Guarda o valor do contador no momento do inicio
 
-	LDR R1, diff_addr
-	LDRB R6, [R1]					; Valor de ciclos referncia para esta dificuldade
-
+	BL get_difficulty_time
+	MOV R6, R0
 	
 game_round_loop:
-    MOV R0, R5				; Metemos em R0, o valor que estava no inicio da contagem
-    BL time_elapsed         ; Calcula diferença entre agora e R1
-    CMP R0, R6              ; Compara tempo decorrido com o desejado
-    BHS game_timeout		; Enquanto decorrido < desejado, espera
+    MOV R0, R5							; Metemos em R0, o valor que estava no inicio da contagem
+    BL time_elapsed         			; Calcula diferença entre agora e R1
+    CMP R0, R6              			; Compara tempo decorrido com o desejado
+    BHS game_timeout					; Enquanto decorrido < desejado, espera
 
 
 	MOV R1, #0x0F
-	BL detect_play			; DEVOLVE A MASCARA DOS INPUTS DETETADOS
-	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
+	BL detect_play						; DEVOLVE A MASCARA DOS INPUTS DETETADOS
+	AND R0, R0, R0						; SE ESTIVER A ZERO, NAO HOUVE INPUTS E CONTINUA
 
 	BZS game_round_loop
 	
 	MOV R1, R4
 	BL if_mole_hit_change_color
-	AND R0, R0, R0			; SE ESTIVER A ZERO, NAO HOUVE TROCAS
-
+	AND R0, R0, R0						; SE ESTIVER A ZERO, NAO HOUVE TROCAS
 	BZS game_round_loop
 
-	; HOUVE UMA TOUPEIRA QUE PASSOU A VERMELHO
-	;BL time_get_ref					; Começa a contar o tempo da ronda
-	;MOV R7, R0						; Guarda o valor do contador no momento do inicio
 
 	BL check_if_any_mole_left
 	AND R0, R0, R0
 	
 	BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
 
+	MOV R0, #WAIT_500MS		
+	BL wait_ticks			
+	
+	MOV R0, #1							; Retorna true, ganhou
 	B game_return
 game_timeout:
-	MOV R0, #0
+	MOV R0, #0							; Retorna false, perdeu
 
 game_return:
-
-	POP R7
 	POP R6
 	POP R5
 	POP R4
 	POP PC
 ; END
-
 
 ;
 ; >> Função READ_GAME_DIFICULTY <<
@@ -262,77 +279,65 @@ read_and_save_game_dificulty:
 	MOV R2, #0xE0
 	AND R0, R0, R2
 
-	LDR r1, period_addr	; Carrega o endereço do array
-	LDR r0, [R1, R0]	; Carrega do array a posição R0
+	LSR R0, R0, #5
+	LSL R0, R0, #1
 
-	LDR r1, diff_addr	; Carrega o endereço da variavel
-	STRB r0, [R1]		; Guarda o valor obtido do array na variável
+	;LDR r1, period_addr	; Carrega o endereço do array
+	;LDR r0, [R1, R0]	; Carrega do array a posição R0
+
+	BL get_period_time_from_array
+
+	;LDR r1, diff_addr	; Carrega o endereço da variavel
+	;STR r0, [R1]		; Guarda o valor obtido do array na variável
+
+	BL set_difficulty_time
 
 
 	POP PC
 ; END
-diff_addr:   		.word dificulty_time
 
-
-; Rotina:    sleep
-; Descricao: Faz um atraso de tempo de #1 em r0 e r1
-; Entradas:  Recebe r0
-; Saidas:    Não têm
-; Efeitos:   Altera os registos R0 e R1
-sleep:
-
-	LDR r1, period_addr	; Carrega o endereço do array
-	LDR r0, [R1, R0]	; Carrega do array a posição R0
-
-	and	r0, r0, r0
-	beq	sleep_end
-sleep_outer_loop:
-	MOV	r1, #0x0E
-	MOVT r1, #0x03
-sleep_inner_loop:
-	sub	r1, r1, #1
-	bne	sleep_inner_loop
-	sub	r0, r0, #1
-	bne	sleep_outer_loop
-sleep_end:
-	MOV	pc, lr
-
-
-
-; Rotina:    vitory_lights
-; Descricao: 
-; Entradas:  R0  -> State. 0 -> Loss | 1 -> Victory
-; Saidas:    -
-; Efeitos:  Pisca os leds 3 vezes com base no parametro de entrada R0. 
-;	Usa uma função auxiliar que permite esperar meio segundo, atraves do pico timer, antes de acender ou apagar o led
+;
+; >> Função flashing_lights << 
+; Pisca os leds 3 vezes com base no parametro de entrada R0. 
+;	Usa uma função auxiliar que permite esperar meio segundo, 
+;	atraves do pico timer, antes de acender ou apagar o led
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-	R0  -> State. 0 -> Loss | 1 -> Victory
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> 
+;
 flashing_lights:
 	PUSH LR
 	PUSH R4
 
-	MOV R4, #3
+	MOV R4, #BLINKING_COUNT
 	
-	MOV R1, #WAIT_500MS
+	MOV R3, #WAIT_500MS
 	
 	MOV R2, #LOSER_LIGHTS
 	CMP R0, R2
 	BEQ loser_prep
 
 victory_prep:
-	MOV R2, #VICTORY_LIGHTS
+	MOV R2, #ALL_GREEN_LIGHTS
 	B flashing_lights_loop
 loser_prep:
-	MOV R2, #LOSER_LIGHTS
+	MOV R2, #ALL_RED_LIGHTS
 
 flashing_lights_loop:
-	MOV R0, #ALL_GREEN_LIGHTS	; METE TUDO A VERDE
+
+	MOV R0, R2					; METE TUDO A VERDE
 	BL outport_write
 	
-	MOV R0, R1			
+	MOV R0, R3			
 	BL wait_ticks
 
 	BL clear_lights				; APAGA OS LEDS TODOS
 
-	MOV R0, R1			
+	MOV R0, R3			
 	BL wait_ticks
 
 	SUB R4, R4, #1
@@ -344,14 +349,19 @@ flashing_lights_retur:
 	POP PC
 ;END
 
-period_addr:  		.word period
 
+;
+; >> Função wait_ticks << 
+; Espera meio segundo
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	R0 -> Recebe o número de ciclos que pretende esperar
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   -
+;
 
-; Rotina:    delay_ticks
-; Descricao: 
-; Entradas:  R0 -> Recebe o número de ciclos que pretende esperar
-; Saidas:    -
-; Efeitos:  Espera meio segundo
 wait_ticks:
     PUSH LR
     PUSH R1
@@ -372,12 +382,19 @@ wait_loop:
     POP PC
 
 
-; Rotina:    if_mole_hit_change_color
-; Descricao: 
-; Entradas:  R0 -> mascara de hits detetada
-; Entradas:  R1 -> posicoes das toupeiras
-; Saidas:    -
-; Efeitos:  
+; END 
+
+;
+; >> Função if_mole_hit_change_color << 
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	R0 -> mascara de hits detetada
+;	R1 -> posicoes das toupeiras
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Boolean
+;
 if_mole_hit_change_color:
 	PUSH LR
 	PUSH R4
@@ -413,18 +430,19 @@ mole_hit_return:
 
 
 
-; Rotina:    show_moles_state
-; Descricao: 
-; Entradas:  R0 -> INDEX da ronda
-; Saidas:    -
-; Efeitos:  
+;
+; >> Função show_moles_state << 
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	R0 -> mascara que identifica a posição das toupeiras nos leds
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   -
+;
 show_moles_state:
 	PUSH LR
-	
-	LDR R2, moles_position_addr
-	LDRB R3, [R2, R0]
 
-	MOV R0, R3
 	BL outport_write
 
 	POP PC
@@ -432,14 +450,40 @@ show_moles_state:
 
 
 
+;
+; >> Função get_moles_positions_from_array << 
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	R0 -> Indice do array aleatorio para aceder ao array de posicionamentoos das toupeiras 
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Devolve a mascara com as posições aleatórias retirada do array moles_position.
+; 
+get_moles_positions_from_array:
+	LDR R1, moles_position_addr
+	LDRB R0, [R1, R0]
+
+	MOV PC, LR
+;END 
+
+
+
+
 moles_position_addr: .word moles_position
 
 
-; Rotina:    detect play
-; Descricao: Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
-; Entradas:  -
-; Saidas:    -
-; Efeitos:   
+;
+; >> Função detect_play << 
+;	Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Devolve a mascara com as posições aleatórias retirada do array moles_position.
+;  
 detect_play:
 	PUSH LR
 	PUSH R4
@@ -455,8 +499,18 @@ detect_play:
 
 
 
-; Entradas:  r0 - valor lido o porto de entrada
-; 			 r1 - Mascara inicial 
+;
+; >> Função detect_play << 
+;	Verifica se é detetada uma transição descendente em qualquer um dos primeiros 4 bits
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	R0 - valor lido o porto de entrada
+; 	R1 - Mascara inicial 
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Devolve a mascara que identifica os bits onde foi detetada uma transição descendente,
+;  
 falling_edge_v2:
 	LDR	 r2, last_play_addr
 	LDRB r3, [r2]	; VALOR EM MEMORIA
@@ -473,8 +527,17 @@ last_play_addr:
 	.word	last_play
 
 
-; START_UP
-; Rotina que inicializa o programa.
+;
+; >> Função start_up_interruptions << 
+;	Rotina que inicializa as interrupções no programa
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   -
+; 
 start_up_interruptions:
 	PUSH LR
 
@@ -493,17 +556,17 @@ start_up_interruptions:
 
 
 ;
-; >> Função CONVERT_MOLEINPUT_MOLEOUTPUT <<
-; Tipo: - FOLHA -
+; >> Função convert_moleinput_moleoutput << 
+;	Converte de mascara que representa os hits para indice de posicao para aceder a um array
+;	Realiza shifts à direita consecutivos até a flag Z se encontrar ativa. Obtendo assim o nº da posição.
+; Tipo: - NAO FOLHA -
 ; Parametros de entrada:
-;   uint4_t num_ -------> r0
-;
+;	-
 ; variaveis locais:
-;   uint8_t contador  --> r2
-;
+;	-
 ; Parametros de saida:
-;   uint8_t ---------> r0
-;
+;   R0 -> Devolve o valor da posição a aceder no array
+; 
 convert_moleinput_moleoutput:
 	MOV R1, #0
 convert_while:
@@ -519,9 +582,17 @@ convert_end:
 ; END CONVERT
 
 
-; GETMOLE_RED
-; Retorna a posição do LED vermelho do output port com base na posição como parametro.  
-; R0 -> Nº da toupeira [4bits]
+;
+; >> Função get_mole_red << 
+;	Retorna a posição do LED vermelho do output port com base na posição como parametro.  
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	R0 -> Indice da posição a aceder ao array das toupeiras [leds vermelhos]
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Devolve a mascara que representa a posiçáo das toupeiras [leds vermelhos]
+; 
 get_mole_red:
 	LDR R1, moles_red_addr
 	LDRB R0, [R1, R0]
@@ -529,9 +600,17 @@ get_mole_red:
 	MOV PC, LR
 
 
-; GETMOLE_GREEN
-; Retorna a posição do LED verde do output port com base na posição como parametro.  
-; R0 -> Nº da toupeira [4bits]
+;
+; >> Função get_mole_green << 
+;	Retorna a posição do LED verdes do output port com base na posição como parametro.  
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	R0 -> Indice da posição a aceder ao array das toupeiras [leds verdes]
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Devolve a mascara que representa a posiçáo das toupeiras [leds verdes]
+; 
 get_mole_green:
 	LDR R1, moles_green_addr
 	LDRB R0, [R1, R0]
@@ -546,16 +625,18 @@ get_mole_green:
 moles_red_addr:  .word moles_red
 moles_green_addr:  .word moles_green
 
+
 ;
-; >> Função GAME START SIGNAL << Coloca todos os leds a laranja
+; >> Função game_start_signal << 
+;	Coloca todos os leds a laranja
 ; Tipo: - FOLHA -
 ; Parametros de entrada:
 ;	-
 ; variaveis locais:
 ;	-
 ; Parametros de saida:
-;   - 
-;
+;   -
+; 
 game_start_signal: 
 	PUSH LR
 	MOV R0, #ALL_YELLOW_LIGHTS ; Coloca todos os 8 bits do output a 1, que significa ativar o RED e GREEN simultaneamente
@@ -566,7 +647,8 @@ game_start_signal:
 ; END
 
 ;
-; >> Função CLEAR LIGHTS << Desliga todos os leds
+; >> Função CLEAR LIGHTS << 
+;	Desliga todos os leds
 ; Tipo: - NAO FOLHA -
 ; Parametros de entrada:
 ;	-
@@ -585,14 +667,15 @@ clear_lights:
 ; END
 
 ;
-; >> Função READ_MARRETA << Lê os 4bits menos significativos do inputport
+; >> Função READ_MARRETA << 
+;	Lê os 4bits menos significativos do inputport
 ; Tipo: - NAO FOLHA -
 ; Parametros de entrada:
 ;	-
 ; variaveis locais:
 ;	-
 ; Parametros de saida:
-;   - 
+;   R0 -> Devolve os 4 bits menos significativos lidos do inputport. 
 ;
 read_marreta:
 	PUSH LR
@@ -607,11 +690,16 @@ read_marreta:
 
 
 
-; Rotina:    turn_mole_red
-; Descricao: 
-; Entradas:  R0 -> INDEX da toupeira
-; Saidas:    -
-; Efeitos:   
+;
+; >> Função turn_mole_red << 
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	R0 -> INDEX da toupeira
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   -
+;
 turn_mole_red:
 	PUSH LR
 	PUSH R4
@@ -631,11 +719,16 @@ turn_mole_red:
 ;END TURN_MOLE_RED
 
 
-; Rotina:    check_if_any_mole_left
-; Descricao: 
-; Entradas: 
-; Saidas:    -
-; Efeitos:  
+;
+; >> Função check_if_any_mole_left << 
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Boolean
+;
 check_if_any_mole_left:
 	LDR R1, out_port_img_addr	; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
 	LDRB R1, [R1]				; VAI BUSCAR O VALOR QUE ESTA VISIVEL QUE ESTA NO OUTPUTPORT
@@ -647,29 +740,124 @@ check_if_any_mole_left:
 ; end check
 
 
-; Rotina:    check_mole_position
-; Descricao: 
-; Entradas:  R0 -> INDEX da marretada
-; Saidas:    -
-; Efeitos:   
-check_mole_position:
+
+;
+; >> Função generate_new_mole << 
+;	Utiliza os 3 bits menos significativos do sysclk para ter um numero aleatorio.
+;	Acedendo a uma posição aleatoria do array de posições já existente
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	-
+; variaveis locais:
+;	-
+; Parametros de saida:
+;   R0 -> Devolve a posição do array das toupeiras gerada aleatoriamente
+; 
+generate_new_mole:
 	PUSH LR
-	
-	
-	BL get_mole_green 
 
-	LDR R1, out_port_img_addr
-	LDRB R1, [R1]
+	BL sysclk_get_ticks		; VAI buscar o valor da variavel sysclk
+	MOV R1, #0x07
+	AND R0, R0, R1			; Filtra para ficar só com os 2 bits menos significativos __XX
 
-	AND R0, R0, R1		; VERIFICA SE OS MESMOS BITS DO OUTPUT PORT E DA GREEN POSISTION DA TOUPEIRA SAO IGUAIS
-
-check_mole_return:
 
 	POP PC
-;END CHECK_MOLE_POSITION
+;END
 
 
 
+;
+; >> Função generate_new_mole << 
+;	Gera uma número aleatorio e devolve uma combinação de toupeiras dependendo do número da ronda
+; Tipo: - FOLHA -
+; Parametros de entrada:
+;	 R0 -> N º da ronda atual
+; variaveis locais:
+;	-
+; Parametros de saida:
+;    R0 -> Mascarada de onde estão posicionadas as toupeiras geradas aleatoriamente
+;				1 Toupeira se: 0 <= N <= 3
+;				2 Toupeira se: 4 <= N <  7
+;
+generate_random_mole:
+	PUSH LR
+	PUSH R4
+	MOV R4, R0
+
+	BL generate_new_mole 
+	MOV R1, #4
+	CMP R4, R1		; SE nº de ronda for >= que 3
+	BLO return_random_mole
+
+two_moles:
+	MOV R1, #0x08
+	ORR R0, R1, R0
+
+return_random_mole:
+
+	BL get_moles_positions_from_array
+
+	POP R4
+	POP PC
+;END
+
+
+;
+; >> Função get_difficulty_time << 
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	 -
+; variaveis locais:
+;	-
+; Parametros de saida:
+;    R0 -> Valor em ciclos da dificuldade definida em memória
+;
+get_difficulty_time:
+
+	LDR R1, diff_addr
+	LDR R0, [R1]					; CARREGA EM R0 o tempo retirado do array de periodos
+
+	MOV PC, LR
+;END 
+
+;
+; >> Função set_difficulty_time << 
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	 R0 -> Valor em ciclos da dificuldade para guardar em memória
+; variaveis locais:
+;  	 -
+; Parametros de saida:
+;    -
+;
+set_difficulty_time:
+	LDR r1, diff_addr	; Carrega o endereço da variavel
+	STR r0, [R1]		; Guarda o valor obtido do array na variável
+
+	MOV PC, LR
+;END 
+
+diff_addr:   		.word dificulty_time
+
+
+;
+; >> Função get_period_time_from_array << 
+; Tipo: - NAO FOLHA -
+; Parametros de entrada:
+;	 R0 -> Indice do array com os periodos definidos para a dificuldade.
+; variaveis locais:
+;	-
+; Parametros de saida:
+;    R0 -> Valor em ciclos retirado do array [period] em memória
+;
+get_period_time_from_array:
+	LDR r1, period_addr	; Carrega o endereço do array
+	LDR r0, [R1, R0]	; Carrega do array a posição R0
+
+	MOV PC, LR
+;END 
+
+period_addr:  		.word period
 
 
 
@@ -761,7 +949,7 @@ out_port_img_addr:  .word outport_img
 ; Saidas:    R0 - valor atual do sysclk (16 bits)
 ; Efeitos:   *** Para completar ***
 time_get_ref:
-	POP LR
+	PUSH LR
 
 	BL sysclk_get_ticks
 
@@ -774,7 +962,7 @@ time_get_ref:
 ; Saidas:    R0 - número de ticks passados desde tempo de referência (now-ref : de notar que o resultado da diferença continua a ser válido se now<ref)
 ; Efeitos:   *** Para completar ***
 time_elapsed:
-	POP LR
+	PUSH LR
 
 	MOV R1, R0
 
@@ -792,19 +980,22 @@ time_elapsed:
 ; Descricao: Incrementa o valor da variável global sysclk.
 ; Entradas:  -
 ; Saidas:    -
-; Efeitos:   *** Para completar ***
+; Efeitos:   Sempre que ha uma interrupção, a rotina incrementa a variável sysclk e repões as flags e PC.
 isr:
+	PUSH	LR
 	PUSH	r1
 	PUSH	r0
-	MOV		r0, #INT_CS_ADDRESS & 0xFF
-	MOVT	r0, #(INT_CS_ADDRESS >> 8) & 0xFF
-	STRB	r2, [r0, #0]
+	
+	BL 		ptc_clr_irq
+
 	LDR		r0, SYSCLK_ADDR
-	LDRB	r1, [r0, #0]
+	LDR		r1, [r0, #0]
 	ADD		r1, r1, #1
-	STRB	r1, [r0, #0]
+	STR		r1, [r0, #0]
 	POP		r0
 	POP		r1	
+	POP		LR 
+
 	MOVS	pc, lr
 
 
@@ -831,15 +1022,16 @@ sysclk_init:
 ; Descricao: Devolve o valor corrente da variável global sysclk.
 ;            Interface exemplo: uint16_t sysclk_get_ticks ( );
 ; Entradas:  -
-; Saidas:    *** Para completar ***
+; Saidas:    Retorna o valor de sysclk guardado em memória
 ; Efeitos:   -
 sysclk_get_ticks:
 	LDR		r0, SYSCLK_ADDR
 	LDR		r0, [r0]
 	MOV		pc, lr
 
-SYSCLK_ADDR:
-	.word	sysclk
+
+.align 1
+SYSCLK_ADDR: .word	sysclk
 
 
 /************************************************************************************
@@ -864,6 +1056,7 @@ ptc_init:
     BL  	ptc_clr_irq
 	BL 		ptc_start
 	POP pc
+
 
 
 ; Rotina:    ptc_start
@@ -938,38 +1131,44 @@ moles_yellow:
 
 ;1KHZ
 period: 
-	.word 0xA7 	; 1	  s
-    .word 0x14F ; 2	  s
-    .word 0x1F7 ; 3	  s
-    .word 0x29F ; 4	  s
-    .word 0x347 ; 5	  s
-    .word 0x3EF ; 6	  s
-    .word 0x479 ; 7	  s
-    .word 0x53F ; 8	  s
-    .word 0x5E7 ; 9	  s
-    .word 0x68F ; 10  s
+ 	.word 0x682 ; 10  s
+ 	.word 0x5DC ; 9	  s
+ 	.word 0x48E ; 7	  s
+ 	.word 0x341 ; 5	  s
+ 	.word 0x29A ; 4	  s
+ 	.word 0x1F4 ; 3	  s
+ 	.word 0x14D ; 2	  s
+ 	.word 0xA6 	; 1	  s
 
 
 ; Seccao:    data
 ; Descricao: Guarda as variaveis globais
 ;
 	.data
-dificulty_time:	.space	1
+dificulty_time:	.space	2
 outport_img: 	.space	1
 last_play:   	.space	1
 sysclk:			.space	2
 
 moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
-	.byte 0x20	; RONDA 1  => [ _1__ ]
-	.byte 0x80	; RONDA 2  => [ 1___ ]
-	.byte 0x02	; RONDA 3  => [ ___1 ]
-	.byte 0x08	; RONDA 4  => [ __1_ ]
-	.byte 0x20	; RONDA 5  => [ _1__ ]
-	.byte 0x88	; RONDA 6  => [ 1_1_ ]
-	.byte 0x22	; RONDA 7  => [ _1_1 ]
-	.byte 0x28	; RONDA 8  => [ _11_ ]
-	.byte 0x82	; RONDA 9  => [ 1_1_ ]
-	.byte 0x28	; RONDA 10 => [ _11_ ]
+	; 1 TOUPEIRAS
+	.byte 0x20	; [ _1__ ]
+	.byte 0x80	; [ 1___ ]
+	.byte 0x02	; [ ___1 ]
+	.byte 0x08	; [ __1_ ]
+	.byte 0x20	; [ _1__ ]
+	.byte 0x80	; [ 1___ ]
+	.byte 0x02	; [ ___1 ]
+	.byte 0x08	; [ __1_ ]
+	; 2 TOUPEIRAS
+	.byte 0x88	; [ 1_1_ ]
+	.byte 0x22	; [ _1_1 ]
+	.byte 0x28	; [ _11_ ]
+	.byte 0x82	; [ 1__1 ]
+	.byte 0xA0	; [ 11__ ]
+	.byte 0x0A	; [ __11 ]
+	.byte 0x82	; [ 1__1 ]
+	.byte 0x22	; [ _1_1 ]
 
 
 ; Seccao:    stack
@@ -978,22 +1177,3 @@ moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
 	.stack
 	.space	STACK_SIZE
 stack_top:
-
-
-; SE A FREQ FOR 100kH, dá 0.01ms por cada contagem de clock. Se for até 255, dá no maximo 2,5ms
-; SE A FREQ FOR 1kH, dá 1ms por cada contagem de clock. Se for até 255, dá no maximo 255ms
-
-; COM 1KHZ
-; 	TEMPO		CICLOS	PL		
-; 	0.5	s		84		83	 	[0x53]
-; 	1	s		168		167		[0xA7]
-; 	2	s		336		335		[0x14F]
-; 	3	s		504		503		[0x1F7]
-; 	4	s		672		671		[0x29F]
-; 	5	s		840		839		[0x347]
-; 	6	s		1008	1007	[0x3EF]
-; 	7	s		1176	1175	[0x479]
-; 	8	s		1344	1343	[0x53F]
-; 	9	s		1512	1511	[0x5E7]
-; 	10	s		1680	1679	[0x68F]
-; 
