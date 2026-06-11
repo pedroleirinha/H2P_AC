@@ -16,7 +16,7 @@
 	.equ 	VICTORY_LIGHTS, 0x01
 	.equ 	LOSER_LIGHTS, 0x00
 
-	.equ 	WAIT_500MS, 0x53
+	.equ 	WAIT_500MS, 0x54
 
 	.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
 	.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
@@ -28,10 +28,10 @@
 	.equ	PTC_CMD_STOP, 1				; Comando para parar a contagem no pTC
 
 ;; O VALOR DO CONTADOR INTERNO DO PICO TIMER SERA SEMPRE 6 PARA GARANTIR QUE É SEMPRE FEITA INTERRUPÇÕES A CADA 6MS
-;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS CLOCKS A CADA 1MS
-;; ASSUMIMOS QUE O ISR DEMORA 1.2MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 5MS
+;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS TRANSIÇÕES A CADA 1MS
+;; ASSUMIMOS QUE O ISR DEMORA 1.48MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 4.52MS
 
-	.equ	TMR_INIT_VAL, 0x05           ; Valor inicial do sysclk que garante a frequencia em segundos das interrupções
+	.equ	TMR_INIT_VAL, 0x05           ; Valor programado no TMR que garante a frequencia das interrupções a cada 6ms
 	
 
 
@@ -980,7 +980,7 @@ time_elapsed:
 ; Descricao: Incrementa o valor da variável global sysclk.
 ; Entradas:  -
 ; Saidas:    -
-; Efeitos:   *** Para completar ***
+; Efeitos:   Sempre que ha uma interrupção, a rotina incrementa a variável sysclk e repões as flags e PC.
 isr:
 	PUSH	LR
 	PUSH	r1
@@ -1022,7 +1022,7 @@ sysclk_init:
 ; Descricao: Devolve o valor corrente da variável global sysclk.
 ;            Interface exemplo: uint16_t sysclk_get_ticks ( );
 ; Entradas:  -
-; Saidas:    *** Para completar ***
+; Saidas:    Retorna o valor de sysclk guardado em memória
 ; Efeitos:   -
 sysclk_get_ticks:
 	LDR		r0, SYSCLK_ADDR
@@ -1131,25 +1131,14 @@ moles_yellow:
 
 ;1KHZ
 period: 
- 	.word 0x7D0 ; 10  s
- 	.word 0x5E7 ; 9	  s
- 	.word 0x479 ; 7	  s
- 	.word 0x347 ; 5	  s
- 	.word 0x320 ; 4	  s
- 	.word 0x1F8 ; 3	  s
- 	.word 0x14F ; 2	  s
- 	.word 0xA7 	; 1	  s
-
-
-
-;    .word 0x3E8 ; 10  s
-;    .word 0x384 ; 9	  s
-;    .word 0x2BC ; 7	  s
-;    .word 0x1F4 ; 5	  s
-;    .word 0x190 ; 4	  s
-;	.word 0x12C ; 3	  s
-;    .word 0x0C8 ; 2	  s
-;	.word 0x064 ; 1	  s
+ 	.word 0x682 ; 10  s
+ 	.word 0x5DC ; 9	  s
+ 	.word 0x48E ; 7	  s
+ 	.word 0x341 ; 5	  s
+ 	.word 0x29A ; 4	  s
+ 	.word 0x1F4 ; 3	  s
+ 	.word 0x14D ; 2	  s
+ 	.word 0xA6 	; 1	  s
 
 
 ; Seccao:    data

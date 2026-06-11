@@ -1,4 +1,4 @@
-P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Projeto\projetoV2.lst	Sat Jun 06 10:37:56 2026
+P16 assembler v1.5 (Feb  9 2024)	c:\Users\oleir\Desktop\Coding\Assembly\P16\H2P_AC\Projeto\projetoV2.lst	Sat Jun 06 18:27:43 2026
 
 Sections
 Index   Name            Address   Size
@@ -116,7 +116,7 @@ turn_mole_red           LABEL     01AA 426    .text
 two_moles               LABEL     01E0 480    .text
 VICTORY_LIGHTS          ABSOLUTE  0001 1      .text
 victory_prep            LABEL     00D6 214    .text
-WAIT_500MS              ABSOLUTE  0053 83     .text
+WAIT_500MS              ABSOLUTE  0054 84     .text
 wait_loop               LABEL     0100 256    .text
 wait_ticks              LABEL     00F4 244    .text
 
@@ -139,7 +139,7 @@ Code listing
   16          		.equ 	VICTORY_LIGHTS, 0x01
   17          		.equ 	LOSER_LIGHTS, 0x00
   18           	
-  19          		.equ 	WAIT_500MS, 0x53
+  19          		.equ 	WAIT_500MS, 0x54
   20           	
   21          		.equ	PTC_ADDRESS, 0xFF00      	; Endereco do circuito pTC
   22          		.equ	INT_CS_ADDRESS, 0xFF00      ; Local em memória para ativar o [nCS_EXT0] Chip select [FF00 a FF3F]
@@ -151,10 +151,10 @@ Code listing
   28          		.equ	PTC_CMD_STOP, 1				; Comando para parar a contagem no pTC
   29           	
   30           	;; O VALOR DO CONTADOR INTERNO DO PICO TIMER SERA SEMPRE 6 PARA GARANTIR QUE É SEMPRE FEITA INTERRUPÇÕES A CADA 6MS
-  31           	;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS CLOCKS A CADA 1MS
-  32           	;; ASSUMIMOS QUE O ISR DEMORA 1.2MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 5MS
+  31           	;; COMO USAMOS UM CLOCK DE 1KHZ, TEMOS TRANSIÇÕES A CADA 1MS
+  32           	;; ASSUMIMOS QUE O ISR DEMORA 1.48MS A EXECUTAR E GARANTIMOS QUE O PROGRAMA CORRE NOS RESTANTES 4.52MS
   33           	
-  34          		.equ	TMR_INIT_VAL, 0x05           ; Valor inicial do sysclk que garante a frequencia em segundos das interrupções
+  34          		.equ	TMR_INIT_VAL, 0x05           ; Valor programado no TMR que garante a frequencia das interrupções a cada 6ms
   35           		
   36           	
   37           	
@@ -299,7 +299,7 @@ Code listing
  176 005A C4 A0		ADD R4, R4, #1					; INCREMENTA O Nº DA RONDA
  177           		
  178 005C 9D 5C		BL clear_lights
- 179 005E 30 65		MOV R0, #WAIT_500MS
+ 179 005E 40 65		MOV R0, #WAIT_500MS
  180 0060 49 5C		BL wait_ticks
  181           			
  182 0062 50 BA		CMP R5, R4
@@ -369,7 +369,7 @@ Code listing
  246           		
  247 00A2 F1 47		BZC game_round_loop					; SE FOR ZERO É PORQUE NAO HA MAIS TOUPEIRAS POR MATAR
  248           	
- 249 00A4 30 65		MOV R0, #WAIT_500MS		
+ 249 00A4 40 65		MOV R0, #WAIT_500MS		
  250 00A6 26 5C		BL wait_ticks			
  251           		
  252 00A8 10 60		MOV R0, #1							; Retorna true, ganhou
@@ -438,7 +438,7 @@ Code listing
  315           	
  316 00CC 34 60		MOV R4, #BLINKING_COUNT
  317           		
- 318 00CE 33 65		MOV R3, #WAIT_500MS
+ 318 00CE 43 65		MOV R3, #WAIT_500MS
  319           		
  320 00D0 02 60		MOV R2, #LOSER_LIGHTS
  321 00D2 00 B9		CMP R0, R2
@@ -1103,7 +1103,7 @@ Code listing
  980           	; Descricao: Incrementa o valor da variável global sysclk.
  981           	; Entradas:  -
  982           	; Saidas:    -
- 983           	; Efeitos:   *** Para completar ***
+ 983           	; Efeitos:   Sempre que ha uma interrupção, a rotina incrementa a variável sysclk e repões as flags e PC.
  984           	isr:
  985 0242 0E 24		PUSH	LR
  986 0244 01 24		PUSH	r1
@@ -1145,7 +1145,7 @@ Code listing
 1022           	; Descricao: Devolve o valor corrente da variável global sysclk.
 1023           	;            Interface exemplo: uint16_t sysclk_get_ticks ( );
 1024           	; Entradas:  -
-1025           	; Saidas:    *** Para completar ***
+1025           	; Saidas:    Retorna o valor de sysclk guardado em memória
 1026           	; Efeitos:   -
 1027           	sysclk_get_ticks:
 1028 0266 20 0C		LDR		r0, SYSCLK_ADDR
@@ -1254,65 +1254,54 @@ Code listing
 1131           	
 1132           	;1KHZ
 1133           	period: 
-1134 02AA D0 07	 	.word 0x7D0 ; 10  s
-1135 02AC E7 05	 	.word 0x5E7 ; 9	  s
-1136 02AE 79 04	 	.word 0x479 ; 7	  s
-1137 02B0 47 03	 	.word 0x347 ; 5	  s
-1138 02B2 20 03	 	.word 0x320 ; 4	  s
-1139 02B4 F8 01	 	.word 0x1F8 ; 3	  s
-1140 02B6 4F 01	 	.word 0x14F ; 2	  s
-1141 02B8 A7 00	 	.word 0xA7 	; 1	  s
+1134 02AA 82 06	 	.word 0x682 ; 10  s
+1135 02AC DC 05	 	.word 0x5DC ; 9	  s
+1136 02AE 8E 04	 	.word 0x48E ; 7	  s
+1137 02B0 41 03	 	.word 0x341 ; 5	  s
+1138 02B2 9A 02	 	.word 0x29A ; 4	  s
+1139 02B4 F4 01	 	.word 0x1F4 ; 3	  s
+1140 02B6 4D 01	 	.word 0x14D ; 2	  s
+1141 02B8 A6 00	 	.word 0xA6 	; 1	  s
 1142           	
 1143           	
-1144           	
-1145           	;    .word 0x3E8 ; 10  s
-1146           	;    .word 0x384 ; 9	  s
-1147           	;    .word 0x2BC ; 7	  s
-1148           	;    .word 0x1F4 ; 5	  s
-1149           	;    .word 0x190 ; 4	  s
-1150           	;	.word 0x12C ; 3	  s
-1151           	;    .word 0x0C8 ; 2	  s
-1152           	;	.word 0x064 ; 1	  s
-1153           	
-1154           	
-1155           	; Seccao:    data
-1156           	; Descricao: Guarda as variaveis globais
-1157           	;
-1158           		.data
-1159 02BA 00   	dificulty_time:	.space	2
-1159 02BB 00
-1160 02BC 00   	outport_img: 	.space	1
-1161 02BD 00   	last_play:   	.space	1
-1162 02BE 00   	sysclk:			.space	2
-1162 02BF 00
-1163           	
-1164           	moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
-1165           		; 1 TOUPEIRAS
-1166 02C0 20		.byte 0x20	; [ _1__ ]
-1167 02C1 80		.byte 0x80	; [ 1___ ]
-1168 02C2 02		.byte 0x02	; [ ___1 ]
-1169 02C3 08		.byte 0x08	; [ __1_ ]
-1170 02C4 20		.byte 0x20	; [ _1__ ]
-1171 02C5 80		.byte 0x80	; [ 1___ ]
-1172 02C6 02		.byte 0x02	; [ ___1 ]
-1173 02C7 08		.byte 0x08	; [ __1_ ]
-1174           		; 2 TOUPEIRAS
-1175 02C8 88		.byte 0x88	; [ 1_1_ ]
-1176 02C9 22		.byte 0x22	; [ _1_1 ]
-1177 02CA 28		.byte 0x28	; [ _11_ ]
-1178 02CB 82		.byte 0x82	; [ 1__1 ]
-1179 02CC A0		.byte 0xA0	; [ 11__ ]
-1180 02CD 0A		.byte 0x0A	; [ __11 ]
-1181 02CE 82		.byte 0x82	; [ 1__1 ]
-1182 02CF 22		.byte 0x22	; [ _1_1 ]
-1183           	
-1184           	
-1185           	; Seccao:    stack
-1186           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
-1187           	;
-1188           		.stack
-1189 02D0 00   		.space	STACK_SIZE
-1189 .... ..
-1189 030F 00
-1190           	stack_top:
-1190           	
+1144           	; Seccao:    data
+1145           	; Descricao: Guarda as variaveis globais
+1146           	;
+1147           		.data
+1148 02BA 00   	dificulty_time:	.space	2
+1148 02BB 00
+1149 02BC 00   	outport_img: 	.space	1
+1150 02BD 00   	last_play:   	.space	1
+1151 02BE 00   	sysclk:			.space	2
+1151 02BF 00
+1152           	
+1153           	moles_position: ; GUARDAR AS POSIÇÕES EM 8 BITS.
+1154           		; 1 TOUPEIRAS
+1155 02C0 20		.byte 0x20	; [ _1__ ]
+1156 02C1 80		.byte 0x80	; [ 1___ ]
+1157 02C2 02		.byte 0x02	; [ ___1 ]
+1158 02C3 08		.byte 0x08	; [ __1_ ]
+1159 02C4 20		.byte 0x20	; [ _1__ ]
+1160 02C5 80		.byte 0x80	; [ 1___ ]
+1161 02C6 02		.byte 0x02	; [ ___1 ]
+1162 02C7 08		.byte 0x08	; [ __1_ ]
+1163           		; 2 TOUPEIRAS
+1164 02C8 88		.byte 0x88	; [ 1_1_ ]
+1165 02C9 22		.byte 0x22	; [ _1_1 ]
+1166 02CA 28		.byte 0x28	; [ _11_ ]
+1167 02CB 82		.byte 0x82	; [ 1__1 ]
+1168 02CC A0		.byte 0xA0	; [ 11__ ]
+1169 02CD 0A		.byte 0x0A	; [ __11 ]
+1170 02CE 82		.byte 0x82	; [ 1__1 ]
+1171 02CF 22		.byte 0x22	; [ _1_1 ]
+1172           	
+1173           	
+1174           	; Seccao:    stack
+1175           	; Descricao: Implementa a pilha com a dimensao definida pelo simbolo STACK_SIZE
+1176           	;
+1177           		.stack
+1178 02D0 00   		.space	STACK_SIZE
+1178 .... ..
+1178 030F 00
+1179           	stack_top:
+1179           	
